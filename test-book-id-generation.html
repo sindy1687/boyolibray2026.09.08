@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>書籍編號生成測試</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .result {
+            background: #f5f5f5;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>書籍編號生成測試</h1>
+    
+    <div class="test-section">
+        <h2>測試場景</h2>
+        <p>模擬書籍編號缺失情況，測試是否能正確找出最小的缺失編號</p>
+        <button onclick="runTest()">執行測試</button>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>手動測試</h2>
+        <input type="text" id="prefix" placeholder="輸入前綴 (A, B, C)" value="C">
+        <button onclick="testManual()">測試指定前綴</button>
+        <div id="manual-results"></div>
+    </div>
+
+    <script>
+        // 模擬圖書館系統的書籍數據
+        class TestLibrarySystem {
+            constructor() {
+                this.books = this.createTestBooks();
+            }
+
+            createTestBooks() {
+                return [
+                    // 模擬 C 區書籍：有 C001, C002, C005, C566 (缺少 C003, C004)
+                    { id: 'C0001', title: '測試書籍 1' },
+                    { id: 'C0002', title: '測試書籍 2' },
+                    { id: 'C0005', title: '測試書籍 5' },
+                    { id: 'C0566', title: '測試書籍 566' },
+                    
+                    // 模擬 A 區書籍：有 A001, A003 (缺少 A002)
+                    { id: 'A0001', title: '繪本測試 1' },
+                    { id: 'A0003', title: '繪本測試 3' },
+                    
+                    // 模擬 B 區書籍：有 B001, B002, B004 (缺少 B003)
+                    { id: 'B0001', title: '橋梁書測試 1' },
+                    { id: 'B0002', title: '橋梁書測試 2' },
+                    { id: 'B0004', title: '橋梁書測試 4' }
+                ];
+            }
+
+            generateNextBookId(prefix) {
+                const used = new Set();
+                const existingNumbers = [];
+
+                // 收集所有已使用的編號
+                this.books.forEach(book => {
+                    if (book?.id) {
+                        const idStr = String(book.id).toUpperCase();
+                        if (idStr.startsWith(prefix)) {
+                            const numPart = idStr.substring(prefix.length);
+                            const num = parseInt(numPart, 10);
+                            if (!isNaN(num)) {
+                                used.add(idStr);
+                                existingNumbers.push(num);
+                            }
+                        }
+                    }
+                    if (Array.isArray(book?.bookIds)) {
+                        book.bookIds.forEach(id => {
+                            if (id) {
+                                const idStr = String(id).toUpperCase();
+                                if (idStr.startsWith(prefix)) {
+                                    const numPart = idStr.substring(prefix.length);
+                                    const num = parseInt(numPart, 10);
+                                    if (!isNaN(num)) {
+                                        used.add(idStr);
+                                        existingNumbers.push(num);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                });
+
+                // 如果沒有任何書籍，從 C0001 開始
+                if (existingNumbers.length === 0) {
+                    return `${prefix}0001`;
+                }
+
+                // 找出最大編號
+                const maxNumber = Math.max(...existingNumbers);
+                
+                // 生成所有可能的編號（從1到最大編號+1）
+                for (let i = 1; i <= maxNumber + 1; i++) {
+                    const candidate = `${prefix}${String(i).padStart(4, '0')}`;
+                    if (!used.has(candidate)) {
+                        return candidate;
+                    }
+                }
+
+                // 如果都找不到，返回最大編號+1
+                return `${prefix}${String(maxNumber + 1).padStart(4, '0')}`;
+            }
+        }
+
+        function runTest() {
+            const library = new TestLibrarySystem();
+            const results = document.getElementById('test-results');
+            results.innerHTML = '';
+
+            const testCases = [
+                { prefix: 'C', expected: 'C0003', description: 'C區：應該返回 C0003 (缺少 C003, C004)' },
+                { prefix: 'A', expected: 'A0002', description: 'A區：應該返回 A0002 (缺少 A002)' },
+                { prefix: 'B', expected: 'B0003', description: 'B區：應該返回 B0003 (缺少 B003)' },
+                { prefix: 'D', expected: 'D0001', description: 'D區：沒有書籍，應該返回 D0001' }
+            ];
+
+            testCases.forEach(testCase => {
+                const result = library.generateNextBookId(testCase.prefix);
+                const passed = result === testCase.expected;
+                
+                const div = document.createElement('div');
+                div.className = `result ${passed ? 'success' : 'error'}`;
+                div.innerHTML = `
+                    <strong>${testCase.description}</strong><br>
+                    預期: ${testCase.expected}<br>
+                    實際: ${result}<br>
+                    結果: ${passed ? '✓ 通過' : '✗ 失敗'}
+                `;
+                results.appendChild(div);
+            });
+        }
+
+        function testManual() {
+            const prefix = document.getElementById('prefix').value.toUpperCase();
+            const library = new TestLibrarySystem();
+            const result = library.generateNextBookId(prefix);
+            const results = document.getElementById('manual-results');
+            
+            results.innerHTML = `
+                <div class="result">
+                    <strong>前綴 ${prefix} 的下一個可用編號:</strong> ${result}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

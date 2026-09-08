@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>手機連線診斷工具</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        h1 { color: white; text-align: center; margin-bottom: 20px; font-size: 1.4rem; }
+        h2 { color: #4a5568; font-size: 1rem; margin-bottom: 12px; }
+        label { display: block; font-size: 0.85rem; color: #718096; margin-bottom: 6px; }
+        input[type="text"] {
+            width: 100%; padding: 12px; border: 2px solid #e2e8f0;
+            border-radius: 8px; font-size: 0.95rem;
+        }
+        input[type="text"]:focus { outline: none; border-color: #667eea; }
+        button {
+            display: block; width: 100%; padding: 14px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border: none; border-radius: 10px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            margin-top: 10px;
+        }
+        button:active { opacity: 0.85; }
+        button.secondary {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+        button.danger {
+            background: linear-gradient(135deg, #fc8181, #e53e3e);
+        }
+        .result {
+            margin-top: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .result.success { background: #f0fff4; color: #276749; border: 1px solid #9ae6b4; }
+        .result.error { background: #fff5f5; color: #c53030; border: 1px solid #fc8181; }
+        .result.info { background: #ebf8ff; color: #2b6cb0; border: 1px solid #90cdf4; }
+        .badge {
+            display: inline-block; padding: 3px 8px;
+            border-radius: 12px; font-size: 0.75rem; font-weight: 600;
+        }
+        .badge.ok { background: #c6f6d5; color: #276749; }
+        .badge.fail { background: #fed7d7; color: #c53030; }
+        .step { margin-bottom: 8px; }
+        .step-icon { margin-right: 6px; }
+        #device-info { font-size: 0.8rem; color: #718096; }
+    </style>
+</head>
+<body>
+    <h1>📱 手機連線診斷工具</h1>
+
+    <div class="card">
+        <h2>裝置資訊</h2>
+        <div id="device-info">載入中...</div>
+    </div>
+
+    <div class="card">
+        <h2>步驟 1：設定 Apps Script 網址</h2>
+        <label>Google Apps Script Web App URL：</label>
+        <input type="text" id="api-url" placeholder="https://script.google.com/macros/s/...exec"
+               value="">
+        <button onclick="saveUrl()">儲存網址</button>
+    </div>
+
+    <div class="card">
+        <h2>步驟 2：測試 GET 連線（手機建議方式）</h2>
+        <button onclick="testGet()">🔍 測試 GET 請求（pull）</button>
+        <div id="get-result" class="result info">尚未測試</div>
+    </div>
+
+    <div class="card">
+        <h2>步驟 3：測試 POST 連線（桌機方式）</h2>
+        <button onclick="testPost()" class="secondary">🔍 測試 POST 請求（pull）</button>
+        <div id="post-result" class="result info">尚未測試</div>
+    </div>
+
+    <div class="card">
+        <h2>步驟 4：完整診斷</h2>
+        <button onclick="runDiagnostic()">🏥 執行完整診斷</button>
+        <div id="diag-result" class="result info">尚未執行</div>
+    </div>
+
+    <div class="card">
+        <h2>說明：手機常見失敗原因</h2>
+        <div style="font-size:0.85rem;color:#4a5568;line-height:1.8;">
+            <b>CORS preflight 錯誤</b><br>
+            POST 請求在手機會觸發 preflight，Google Apps Script 不回應 preflight → 失敗<br><br>
+            <b>解決方案</b><br>
+            ✅ 使用 GET 方式（本系統已自動採用）<br>
+            ✅ Apps Script 部署設為「任何人」可存取<br>
+            ✅ Apps Script 執行身分設為「我（部署者）」<br><br>
+            <b>確認 Apps Script 部署步驟：</b><br>
+            1. 打開 Apps Script 編輯器<br>
+            2. 部署 → 新增部署<br>
+            3. 類型：網路應用程式<br>
+            4. 執行身分：我<br>
+            5. 誰可以存取：<b>任何人</b><br>
+            6. 複製新網址到系統設定
+        </div>
+    </div>
+
+    <script>
+        // 顯示裝置資訊
+        document.getElementById('device-info').innerHTML = `
+            <div>UA: ${navigator.userAgent.slice(0, 100)}</div>
+            <div>手機偵測: <span class="badge ${/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 'fail' : 'ok'}">${/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? '是手機' : '非手機'}</span></div>
+            <div>時間: ${new Date().toLocaleString('zh-TW')}</div>
+        `;
+
+        // 嘗試從 localStorage 讀取已儲存網址
+        const savedSettings = JSON.parse(localStorage.getItem('lib_settings_v1') || '{}');
+        if (savedSettings.googleWebAppUrl) {
+            document.getElementById('api-url').value = savedSettings.googleWebAppUrl;
+        }
+
+        function getUrl() {
+            return document.getElementById('api-url').value.trim();
+        }
+
+        function saveUrl() {
+            const url = getUrl();
+            if (!url) { alert('請輸入網址'); return; }
+            const s = JSON.parse(localStorage.getItem('lib_settings_v1') || '{}');
+            s.googleWebAppUrl = url;
+            localStorage.setItem('lib_settings_v1', JSON.stringify(s));
+            alert('已儲存！');
+        }
+
+        function setResult(id, text, type) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            el.className = `result ${type}`;
+        }
+
+        async function testGet() {
+            const url = getUrl();
+            if (!url) { alert('請先填入網址'); return; }
+            setResult('get-result', '⏳ 測試中...', 'info');
+            const t0 = Date.now();
+            try {
+                const payload = JSON.stringify({ action: 'pull' });
+                const params = new URLSearchParams({ payload });
+                const resp = await fetch(`${url}?${params}`, { method: 'GET', cache: 'no-store' });
+                const text = await resp.text();
+                const ms = Date.now() - t0;
+                let parsed;
+                try { parsed = JSON.parse(text); } catch(_) { parsed = null; }
+
+                if (parsed && parsed.ok) {
+                    const books = parsed.data?.books?.length ?? 0;
+                    const borrowed = parsed.data?.borrowedBooks?.length ?? 0;
+                    setResult('get-result',
+                        `✅ GET 成功！（${ms}ms）\n書籍數：${books}\n借閱記錄：${borrowed}`,
+                        'success');
+                } else if (parsed) {
+                    setResult('get-result',
+                        `⚠️ 回傳 ok=false（${ms}ms）\n錯誤：${parsed.error || '未知'}`,
+                        'error');
+                } else {
+                    setResult('get-result',
+                        `⚠️ 回傳非 JSON（${ms}ms）\nHTTP ${resp.status}\n內容前200字：\n${text.slice(0, 200)}`,
+                        'error');
+                }
+            } catch(err) {
+                setResult('get-result',
+                    `❌ GET 失敗（${Date.now()-t0}ms）\n錯誤：${err.message}\n\n可能原因：\n1. 網址錯誤\n2. 手機沒有網路\n3. Apps Script 未部署`,
+                    'error');
+            }
+        }
+
+        async function testPost() {
+            const url = getUrl();
+            if (!url) { alert('請先填入網址'); return; }
+            setResult('post-result', '⏳ 測試中...', 'info');
+            const t0 = Date.now();
+            try {
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'pull' }),
+                    cache: 'no-store'
+                });
+                const text = await resp.text();
+                const ms = Date.now() - t0;
+                let parsed;
+                try { parsed = JSON.parse(text); } catch(_) { parsed = null; }
+
+                if (parsed && parsed.ok) {
+                    const books = parsed.data?.books?.length ?? 0;
+                    setResult('post-result', `✅ POST 成功！（${ms}ms）\n書籍數：${books}`, 'success');
+                } else if (parsed) {
+                    setResult('post-result', `⚠️ 回傳 ok=false\n${parsed.error}`, 'error');
+                } else {
+                    setResult('post-result',
+                        `⚠️ 回傳非 JSON（${ms}ms）\nHTTP ${resp.status}\n${text.slice(0, 200)}`,
+                        'error');
+                }
+            } catch(err) {
+                setResult('post-result',
+                    `❌ POST 失敗（${Date.now()-t0}ms）\n錯誤：${err.message}\n\n這是手機 CORS 常見問題！\n請改用 GET 方式（步驟2）`,
+                    'error');
+            }
+        }
+
+        async function runDiagnostic() {
+            const url = getUrl();
+            if (!url) { alert('請先填入網址'); return; }
+            setResult('diag-result', '⏳ 診斷中，請稍候...', 'info');
+
+            const lines = [];
+            const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+            lines.push(`裝置類型：${isMobile ? '📱 手機' : '💻 桌機'}`);
+            lines.push(`網址前60字：${url.slice(0,60)}...`);
+            lines.push(`https：${url.startsWith('https://') ? '✅ 是' : '❌ 否（必須用 https）'}`);
+            lines.push(`包含 exec：${url.includes('/exec') ? '✅ 是' : '❌ 否（網址需以 /exec 結尾）'}`);
+            lines.push('');
+
+            // GET 測試
+            lines.push('── GET 測試 ──');
+            try {
+                const params = new URLSearchParams({ payload: JSON.stringify({ action: 'pull' }) });
+                const resp = await fetch(`${url}?${params}`, { method: 'GET', cache: 'no-store' });
+                const text = await resp.text();
+                let parsed; try { parsed = JSON.parse(text); } catch(_) { parsed = null; }
+                if (parsed && parsed.ok) {
+                    lines.push(`✅ GET 成功！書籍：${parsed.data?.books?.length ?? 0} 本`);
+                } else if (parsed) {
+                    lines.push(`⚠️ GET 回傳錯誤：${parsed.error}`);
+                } else {
+                    lines.push(`❌ GET 回傳非 JSON（HTTP ${resp.status}）`);
+                    lines.push(`  可能 Apps Script 沒有 doGet，請複製最新的 apps-script-full-patched.js`);
+                }
+            } catch(err) {
+                lines.push(`❌ GET 失敗：${err.message}`);
+            }
+            lines.push('');
+
+            // POST 測試
+            lines.push('── POST 測試 ──');
+            try {
+                const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'pull' }),
+                    cache: 'no-store'
+                });
+                const text = await resp.text();
+                let parsed; try { parsed = JSON.parse(text); } catch(_) { parsed = null; }
+                if (parsed && parsed.ok) {
+                    lines.push(`✅ POST 成功！書籍：${parsed.data?.books?.length ?? 0} 本`);
+                } else {
+                    lines.push(`❌ POST 失敗或回傳錯誤`);
+                    if (isMobile) lines.push(`  (手機 CORS 問題屬正常，使用 GET 方式即可)`);
+                }
+            } catch(err) {
+                lines.push(`❌ POST 失敗：${err.message}`);
+                if (isMobile) lines.push(`  (手機 CORS 問題屬正常，使用 GET 方式即可)`);
+            }
+
+            lines.push('');
+            lines.push('── 診斷完成 ──');
+
+            const hasGetSuccess = lines.some(l => l.includes('GET 成功'));
+            lines.push(hasGetSuccess
+                ? '🎉 系統應能正常讀取 Google Sheet 資料！'
+                : '❗ 請依照上方說明卡片修正 Apps Script 部署設定');
+
+            setResult('diag-result', lines.join('\n'), hasGetSuccess ? 'success' : 'error');
+        }
+    </script>
+</body>
+</html>

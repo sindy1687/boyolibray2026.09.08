@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>調試頁面</title>
+</head>
+<body>
+    <h1>調試頁面</h1>
+    <div id="debug-info"></div>
+    <div id="books-container"></div>
+    
+    <script>
+        // 簡單的測試
+        console.log('調試頁面載入');
+        
+        // 測試 CSV 載入
+        async function testCSVLoad() {
+            try {
+                const response = await fetch('113博幼館藏.csv');
+                const csvText = await response.text();
+                console.log('CSV 載入成功，長度:', csvText.length);
+                
+                const lines = csvText.split('\n');
+                console.log('CSV 行數:', lines.length);
+                
+                // 顯示前幾行
+                for (let i = 0; i < Math.min(10, lines.length); i++) {
+                    console.log(`第${i}行:`, lines[i]);
+                }
+                
+                document.getElementById('debug-info').innerHTML = `
+                    <p>CSV 載入成功</p>
+                    <p>總行數: ${lines.length}</p>
+                    <p>前10行已輸出到控制台</p>
+                `;
+            } catch (error) {
+                console.error('CSV 載入失敗:', error);
+                document.getElementById('debug-info').innerHTML = `<p>CSV 載入失敗: ${error.message}</p>`;
+            }
+        }
+        
+        // 測試 Google Sheets 載入
+        async function testGoogleSheets() {
+            try {
+                const sheetId = '1ak0YuXMs7YXQZwRPSs-Chayt06y5pfKOx0ip1AqobFA';
+                const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
+                
+                const response = await fetch(csvUrl);
+                const csvText = await response.text();
+                console.log('Google Sheets 載入成功，長度:', csvText.length);
+                
+                const lines = csvText.split('\n');
+                console.log('Google Sheets 行數:', lines.length);
+                
+                document.getElementById('debug-info').innerHTML += `
+                    <p>Google Sheets 載入成功</p>
+                    <p>總行數: ${lines.length}</p>
+                `;
+            } catch (error) {
+                console.error('Google Sheets 載入失敗:', error);
+                document.getElementById('debug-info').innerHTML += `<p>Google Sheets 載入失敗: ${error.message}</p>`;
+            }
+        }
+        
+        // 頁面載入時執行測試
+        window.onload = function() {
+            testCSVLoad();
+            testGoogleSheets();
+        };
+    </script>
+</body>
+</html>

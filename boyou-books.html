@@ -1,0 +1,3687 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博幼藏書 - 圖書館管理系統</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* 博幼藏書專頁樣式 */
+        .boyou-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: 10px;
+        }
+
+        .boyou-header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .boyou-header p {
+            margin: 0.5rem 0 0 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* 搜尋區域樣式 */
+        .search-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .search-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            position: relative;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-button, .clear-button {
+            padding: 1rem;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+            height: 50px;
+        }
+
+        .search-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .clear-button {
+            background: #f56565;
+            color: white;
+        }
+
+        .clear-button:hover {
+            background: #e53e3e;
+            transform: translateY(-2px);
+        }
+
+        .search-filters {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-filters select {
+            padding: 0.8rem 1.2rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 150px;
+        }
+
+        .search-filters select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-results-info {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            color: #4a5568;
+            font-weight: 500;
+        }
+
+        .search-results-info #search-count {
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        /* 搜尋高亮樣式 */
+        .highlight {
+            background: #fef5e7;
+            color: #d69e2e;
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        /* 無搜尋結果樣式 */
+        .no-results {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #718096;
+        }
+
+        .no-results i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #cbd5e0;
+        }
+
+        .no-results h3 {
+            margin: 0 0 0.5rem 0;
+            color: #4a5568;
+        }
+
+        .no-results p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .book-categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .category-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .category-section:hover {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 3px solid #f7fafc;
+        }
+
+        .category-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .category-info h3 {
+            margin: 0;
+            font-size: 1.6rem;
+            color: #2d3748;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .category-info p {
+            margin: 0.5rem 0 0 0;
+            color: #718096;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .book-list {
+            display: grid;
+            gap: 0.8rem;
+        }
+
+        .book-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.2rem;
+            background: #ffffff;
+            border-radius: 12px;
+            border-left: 5px solid;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .book-item:hover {
+            background: #f8fafc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-left-width: 6px;
+        }
+
+        .book-info {
+            flex: 1;
+        }
+
+        .book-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+            line-height: 1.4;
+        }
+
+
+
+        .book-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.2rem;
+            font-size: 0.9rem;
+            color: #4a5568;
+            align-items: center;
+        }
+
+        .book-details span {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.6rem;
+            background: #f7fafc;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .book-details i {
+            color: #667eea;
+            font-size: 0.85rem;
+        }
+
+        /* 書箱號碼特殊樣式 */
+        .book-details .box-number {
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        /* 不同書箱號碼的顏色 */
+        .box-number.box-1 {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .box-number.box-2 {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        }
+
+        .box-number.box-3 {
+            background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+        }
+
+        .box-number.box-5 {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        .box-number.box-6 {
+            background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+        }
+
+        .box-number.box-7 {
+            background: linear-gradient(135deg, #ff5722 0%, #d84315 100%);
+        }
+
+        .box-number.box-23 {
+            background: linear-gradient(135deg, #673ab7 0%, #512da8 100%);
+        }
+
+        .box-number.box-24 {
+            background: linear-gradient(135deg, #3f51b5 0%, #303f9f 100%);
+        }
+
+        .box-number.box-25 {
+            background: linear-gradient(135deg, #ff7043 0%, #f4511e 100%);
+        }
+
+        .box-number.box-26 {
+            background: linear-gradient(135deg, #8bc34a 0%, #689f38 100%);
+        }
+
+        .box-number.box-27 {
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        }
+
+        .box-number.box-28 {
+            background: linear-gradient(135deg, #ab47bc 0%, #9c27b0 100%);
+        }
+
+        .box-number.box-29 {
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+        }
+
+        .box-number.box-31 {
+            background: linear-gradient(135deg, #795548 0%, #5d4037 100%);
+        }
+
+        .box-number.box-32 {
+            background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+        }
+
+        .box-number.box-4 {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        .box-number.box-8 {
+            background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+        }
+
+        .box-number.box-17 {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .box-number.box-18 {
+            background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+        }
+
+        .box-number.box-19 {
+            background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+        }
+
+        .box-number.box-20 {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+        }
+
+        .box-number.box-21 {
+            background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+        }
+
+        .box-number.box-22 {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+        }
+
+        .box-number.box-11 {
+            background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+        }
+
+        .box-number.box-12 {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .box-number.box-13 {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        }
+
+        .box-number.box-14 {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        }
+
+        .box-number        .box-16 {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
+
+        .box-15 {
+            background: linear-gradient(135deg, #607d8b 0%, #455a64 100%);
+        }
+
+        .box-number.box-15 {
+            background: linear-gradient(135deg, #607d8b 0%, #455a64 100%);
+        }
+
+        /* 書箱號碼懸停效果 */
+        .box-number:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .book-stats {
+            text-align: right;
+            font-size: 0.95rem;
+            min-width: 80px;
+        }
+
+        .book-count {
+            font-weight: 700;
+            color: #2d3748;
+            font-size: 1.1rem;
+            padding: 0.4rem 0.8rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .book-box {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            display: inline-block;
+            margin-top: 0.3rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 不同書箱的顏色 */
+        .box-1 {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .box-2 {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        }
+
+        .box-3 {
+            background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+        }
+
+        .box-27 {
+            background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        }
+
+        .box-28 {
+            background: linear-gradient(135deg, #ab47bc 0%, #9c27b0 100%);
+        }
+
+        .box-29 {
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+        }
+
+        .box-31 {
+            background: linear-gradient(135deg, #795548 0%, #5d4037 100%);
+        }
+
+        .box-32 {
+            background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+        }
+
+        .box-4 {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        .box-8 {
+            background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+        }
+
+        .box-17 {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .box-18 {
+            background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+        }
+
+        .box-19 {
+            background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);
+        }
+
+        .box-20 {
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+        }
+
+        .box-21 {
+            background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+        }
+
+        .box-22 {
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+        }
+
+        .box-5 {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        }
+
+        .box-6 {
+            background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);
+        }
+
+        .box-7 {
+            background: linear-gradient(135deg, #ff5722 0%, #d84315 100%);
+        }
+
+        .box-23 {
+            background: linear-gradient(135deg, #673ab7 0%, #512da8 100%);
+        }
+
+        .box-24 {
+            background: linear-gradient(135deg, #3f51b5 0%, #303f9f 100%);
+        }
+
+        .box-25 {
+            background: linear-gradient(135deg, #ff7043 0%, #f4511e 100%);
+        }
+
+        .box-26 {
+            background: linear-gradient(135deg, #8bc34a 0%, #689f38 100%);
+        }
+
+        .book-box:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #2d3748;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .special-books {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .special-books h3 {
+            color: #8b4513;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .ethnic-books {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .ethnic-book {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid #d4a574;
+        }
+
+        .ethnic-tribe {
+            font-weight: 600;
+            color: #8b4513;
+            margin-bottom: 0.3rem;
+        }
+
+        .ethnic-title {
+            color: #2d3748;
+        }
+
+        /* 神奇樹屋區塊樣式 */
+        .magic-tree-house-section {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border: 2px solid #ff9800;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .magic-tree-house-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 152, 0, 0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+
+        .magic-tree-house-section .category-header {
+            position: relative;
+            z-index: 1;
+        }
+
+        .magic-tree-house-section .book-item {
+            background: rgba(255, 255, 255, 0.9);
+            border-left: 4px solid #ff9800;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.2);
+        }
+
+        .magic-tree-house-section .book-item:hover {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        /* 羅德達爾區塊樣式 */
+        .roald-dahl-section {
+            background: linear-gradient(135deg, #f8e8ff 0%, #e8d5f2 100%);
+            border: 2px solid #8e44ad;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .roald-dahl-section::before {
+            content: '';
+            position: absolute;
+            top: -30%;
+            left: -30%;
+            width: 160%;
+            height: 160%;
+            background: radial-gradient(circle, rgba(142, 68, 173, 0.1) 0%, transparent 60%);
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .roald-dahl-section .category-header {
+            position: relative;
+            z-index: 1;
+        }
+
+        .roald-dahl-section .book-item {
+            background: rgba(255, 255, 255, 0.9);
+            border-left: 4px solid #8e44ad;
+            box-shadow: 0 2px 8px rgba(142, 68, 173, 0.2);
+        }
+
+        .roald-dahl-section .book-item:hover {
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 4px 15px rgba(142, 68, 173, 0.3);
+        }
+
+        /* 館藏位置圖樣式 */
+        .location-map-section {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .location-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .location-header h3 {
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .location-header p {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .location-map-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .location-map-wrapper {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            background: #f8fafc;
+        }
+
+        .location-map-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .location-map-image:hover {
+            transform: scale(1.02);
+        }
+
+        .map-overlay {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+        }
+
+        .map-zoom-btn {
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .map-zoom-btn:hover {
+            background: rgba(102, 126, 234, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .location-legend {
+            background: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .location-legend h4 {
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .legend-section {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .legend-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .legend-section h5 {
+            color: #2d3748;
+            margin: 0 0 0.8rem 0;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-left: 0.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 0.9rem;
+            color: #4a5568;
+            padding: 0.3rem 0;
+        }
+
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 模態框樣式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .map-modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-map-container {
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+        .modal-map-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-legend {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .modal-legend h4 {
+            color: #4a5568;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .modal-legend .legend-section {
+            margin-bottom: 1.2rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .modal-legend .legend-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .modal-legend .legend-section h5 {
+            color: #2d3748;
+            margin: 0 0 0.6rem 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .modal-legend .legend-items {
+            flex-direction: row;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-left: 0;
+        }
+
+        .modal-legend .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            color: #4a5568;
+            padding: 0.2rem 0;
+        }
+
+        .modal-legend .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            flex-shrink: 0;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 簡化版書箱列表樣式 */
+        .compact-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .legend-category {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.5rem 0;
+        }
+
+        .category-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #2d3748;
+            min-width: 80px;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .box-numbers {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .box-numbers .box-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease;
+        }
+
+        .box-numbers .box-number:hover {
+            transform: scale(1.1);
+        }
+
+        @media (max-width: 768px) {
+            .back-btn {
+                position: static;
+                margin-bottom: 1rem;
+            }
+            
+            .boyou-header h1 {
+                font-size: 2rem;
+            }
+            
+            .book-categories {
+                grid-template-columns: 1fr;
+            }
+            
+            .book-details {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .book-details span {
+                justify-content: flex-start;
+                width: fit-content;
+            }
+
+            .book-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .book-stats {
+                text-align: left;
+                width: 100%;
+            }
+            
+            .location-map-container {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .modal-legend .legend-items {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+            
+            .map-modal-content {
+                margin: 5% auto;
+                padding: 1rem;
+                width: 95%;
+            }
+            
+            .search-filters {
+                flex-direction: column;
+            }
+            
+            .search-filters select {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 返回按鈕 -->
+        <button class="back-btn" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i> 返回主頁
+        </button>
+
+        <!-- 博幼藏書標題 -->
+        <div class="boyou-header">
+            <h1><i class="fas fa-book-reader"></i> 博幼藏書</h1>
+            <p>精選優質童書，陪伴孩子快樂成長</p>
+        </div>
+
+        <!-- 搜尋區域 -->
+        <div class="search-section">
+            <div class="search-container">
+                <div class="search-bar">
+                    <input type="text" id="search-input" placeholder="搜尋書名、編號、書箱..." autocomplete="off">
+                    <button id="search-btn" class="search-button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button id="clear-search-btn" class="clear-button" style="display: none;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="search-filters">
+                    <select id="category-filter">
+                        <option value="">全部類別</option>
+                        <option value="繪本">繪本</option>
+                        <option value="橋梁書">橋梁書</option>
+                        <option value="神奇樹屋">神奇樹屋</option>
+                        <option value="羅德達爾">羅德達爾</option>
+                        <option value="文字書">文字書</option>
+                    </select>
+                    <select id="box-filter">
+                        <option value="">全部書箱</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                        <option value="13">13</option>
+                        <option value="14">14</option>
+                        <option value="15">15</option>
+                        <option value="16">16</option>
+                        <option value="17">17</option>
+                        <option value="18">18</option>
+                        <option value="19">19</option>
+                        <option value="20">20</option>
+                        <option value="21">21</option>
+                        <option value="22">22</option>
+                        <option value="23">23</option>
+                        <option value="24">24</option>
+                        <option value="25">25</option>
+                        <option value="26">26</option>
+                        <option value="27">27</option>
+                        <option value="28">28</option>
+                        <option value="29">29</option>
+                        <option value="31">31</option>
+                        <option value="32">32</option>
+                    </select>
+                </div>
+            </div>
+            <div class="search-results-info" id="search-results-info" style="display: none;">
+                <span id="search-count">0</span> 個搜尋結果
+            </div>
+        </div>
+
+        <!-- 館藏位置圖 -->
+        <div class="location-map-section">
+            <div class="location-header">
+                <h3><i class="fas fa-map-marked-alt"></i> 館藏位置圖</h3>
+                <p>查看書籍在圖書館中的具體存放位置</p>
+            </div>
+            <div class="location-map-container">
+                <div class="location-map-wrapper">
+                    <img src="BOYO館藏.jpg" alt="博幼館藏位置圖" class="location-map-image" id="location-map">
+                    <div class="map-overlay">
+                        <button class="map-zoom-btn" onclick="toggleMapZoom()">
+                            <i class="fas fa-search-plus"></i> 放大查看
+                        </button>
+                    </div>
+                </div>
+                <div class="location-legend">
+                    <h4><i class="fas fa-info-circle"></i> 書箱位置說明</h4>
+                    <p style="color: #718096; font-size: 0.85rem; margin-bottom: 1rem; text-align: center; line-height: 1.4;">
+                        <i class="fas fa-lightbulb"></i> 點擊放大查看詳細位置圖
+                    </p>
+                    
+                    <!-- 簡化版書箱列表 -->
+                    <div class="compact-legend">
+                        <div class="legend-category">
+                            <span class="category-title"><i class="fas fa-palette" style="color: #ff6b6b;"></i> 繪本區</span>
+                            <div class="box-numbers">
+                                <span class="box-number" style="background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);">27</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #ab47bc 0%, #9c27b0 100%);">28</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);">29</span>
+                            </div>
+                        </div>
+                        
+                        <div class="legend-category">
+                            <span class="category-title"><i class="fas fa-book-open" style="color: #f39c12;"></i> 橋梁書區</span>
+                            <div class="box-numbers">
+                                <span class="box-number" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);">1</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);">2</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);">3</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">4</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);">8</span>
+                            </div>
+                        </div>
+                        
+                        <div class="legend-category">
+                            <span class="category-title"><i class="fas fa-tree" style="color: #ff9800;"></i> 神奇樹屋區</span>
+                            <div class="box-numbers">
+                                <span class="box-number" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">5</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);">6</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #ff5722 0%, #d84315 100%);">7</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #673ab7 0%, #512da8 100%);">23</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #3f51b5 0%, #303f9f 100%);">24</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #ff7043 0%, #f4511e 100%);">25</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #8bc34a 0%, #689f38 100%);">26</span>
+                            </div>
+                        </div>
+                        
+                        <div class="legend-category">
+                            <span class="category-title"><i class="fas fa-magic" style="color: #8e44ad;"></i> 羅德達爾區</span>
+                            <div class="box-numbers">
+                                <span class="box-number" style="background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);">11</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">12</span>
+                            </div>
+                        </div>
+                        
+                        <div class="legend-category">
+                            <span class="category-title"><i class="fas fa-book" style="color: #9b59b6;"></i> 文字書區</span>
+                            <div class="box-numbers">
+                                <span class="box-number" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);">13</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);">14</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #607d8b 0%, #455a64 100%);">15</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);">16</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);">17</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);">18</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);">19</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);">20</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);">21</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);">22</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #795548 0%, #5d4037 100%);">31</span>
+                                <span class="box-number" style="background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);">32</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 統計概覽 -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <span class="stat-number" id="total-books">0</span>
+                <div class="stat-label">總書籍數量</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="total-copies">0</span>
+                <div class="stat-label">總冊數</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="total-boxes">0</span>
+                <div class="stat-label">使用書箱</div>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number" id="ethnic-books-count">0</span>
+                <div class="stat-label">民族故事書</div>
+            </div>
+        </div>
+
+        <!-- 書籍分類 -->
+        <div class="book-categories">
+            <!-- 繪本區 -->
+            <div class="category-section">
+                <div class="category-header">
+                    <div class="category-icon" style="background: #ff6b6b;">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <div class="category-info">
+                        <h3>繪本區</h3>
+                        <p>適合1-2年級使用的精美繪本</p>
+                    </div>
+                </div>
+                <div class="book-list" id="picture-books-list">
+                    <!-- 繪本清單將在這裡動態生成 -->
+                </div>
+            </div>
+
+            <!-- 橋梁書區 -->
+            <div class="category-section">
+                <div class="category-header">
+                    <div class="category-icon" style="background: #f39c12;">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="category-info">
+                        <h3><i class="fas fa-book-open" style="color: #f39c12;"></i> 橋梁書區</h3>
+                        <p>適合3-4年級使用的橋梁書</p>
+                    </div>
+                </div>
+                <div class="book-list" id="bridge-books-list">
+                    <!-- 橋梁書清單將在這裡動態生成 -->
+                </div>
+            </div>
+
+            <!-- 文字書區 -->
+            <div class="category-section">
+                <div class="category-header">
+                    <div class="category-icon" style="background: #9b59b6;">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="category-info">
+                        <h3>文字書區</h3>
+                        <p>適合5-6年級使用的文字書</p>
+                    </div>
+                </div>
+                <div class="book-list" id="text-books-list">
+                    <!-- 文字書清單將在這裡動態生成 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 神奇樹屋區 -->
+        <div class="category-section magic-tree-house-section">
+            <div class="category-header">
+                <div class="category-icon" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);">
+                    <i class="fas fa-tree"></i>
+                </div>
+                <div class="category-info">
+                    <h3>神奇樹屋系列</h3>
+                    <p>適合3-4年級的冒險故事橋梁書</p>
+                </div>
+            </div>
+            <div class="book-list" id="magic-tree-house-list">
+                <!-- 神奇樹屋清單將在這裡動態生成 -->
+            </div>
+        </div>
+
+        <!-- 羅德達爾區 -->
+        <div class="category-section roald-dahl-section">
+            <div class="category-header">
+                <div class="category-icon" style="background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);">
+                    <i class="fas fa-magic"></i>
+                </div>
+                <div class="category-info">
+                    <h3>羅德達爾系列</h3>
+                    <p>經典兒童文學作品，適合3-6年級閱讀</p>
+                </div>
+            </div>
+            <div class="book-list" id="roald-dahl-list">
+                <!-- 羅德達爾清單將在這裡動態生成 -->
+            </div>
+        </div>
+
+        <!-- 特殊書籍區 -->
+        <div class="special-books">
+            <h3><i class="fas fa-star"></i> 民族故事書</h3>
+            <div class="ethnic-books" id="ethnic-books-list">
+                <!-- 民族故事書將在這裡動態生成 -->
+            </div>
+        </div>
+
+
+        <!-- 放大圖模態框 -->
+        <div id="map-modal" class="modal">
+            <div class="modal-content map-modal-content">
+                <span class="close" onclick="closeMapModal()">&times;</span>
+                <h3>博幼館藏位置圖</h3>
+                <div class="modal-map-container">
+                    <img src="BOYO館藏.jpg" alt="博幼館藏位置圖 - 放大版" class="modal-map-image">
+                </div>
+                <div class="modal-legend">
+                    <h4><i class="fas fa-info-circle"></i> 書箱位置說明</h4>
+                    <p style="color: #718096; font-size: 0.85rem; margin-bottom: 1rem; text-align: center; line-height: 1.4;">
+                        <i class="fas fa-lightbulb"></i> 每個書箱都有獨特的顏色標識，方便快速識別書籍存放位置
+                    </p>
+                    
+                    <!-- 繪本區 -->
+                    <div class="legend-section">
+                        <h5><i class="fas fa-palette" style="color: #ff6b6b;"></i> 繪本區 (1-2年級)</h5>
+                        <div class="legend-items">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);"></span>
+                                <span>27</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #ab47bc 0%, #9c27b0 100%);"></span>
+                                <span>28</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #26c6da 0%, #00acc1 100%);"></span>
+                                <span>29</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 橋梁書區 -->
+                    <div class="legend-section">
+                        <h5><i class="fas fa-book-open" style="color: #f39c12;"></i> 橋梁書區 (3-4年級)</h5>
+                        <div class="legend-items">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);"></span>
+                                <span>1</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);"></span>
+                                <span>2</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);"></span>
+                                <span>3</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);"></span>
+                                <span>4</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);"></span>
+                                <span>8</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 神奇樹屋區 -->
+                    <div class="legend-section">
+                        <h5><i class="fas fa-tree" style="color: #ff9800;"></i> 神奇樹屋區 (3-4年級)</h5>
+                        <div class="legend-items">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);"></span>
+                                <span>5</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);"></span>
+                                <span>6</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #ff5722 0%, #d84315 100%);"></span>
+                                <span>7</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #673ab7 0%, #512da8 100%);"></span>
+                                <span>23</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #3f51b5 0%, #303f9f 100%);"></span>
+                                <span>24</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #ff7043 0%, #f4511e 100%);"></span>
+                                <span>25</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #8bc34a 0%, #689f38 100%);"></span>
+                                <span>26</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 文字書區 -->
+                    <div class="legend-section">
+                        <h5><i class="fas fa-book" style="color: #9b59b6;"></i> 文字書區 (5-6年級)</h5>
+                        <div class="legend-items">
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);"></span>
+                                <span>13</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);"></span>
+                                <span>14</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #607d8b 0%, #455a64 100%);"></span>
+                                <span>15</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);"></span>
+                                <span>16</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);"></span>
+                                <span>17</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);"></span>
+                                <span>18</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%);"></span>
+                                <span>19</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);"></span>
+                                <span>20</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);"></span>
+                                <span>21</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);"></span>
+                                <span>22</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #795548 0%, #5d4037 100%);"></span>
+                                <span>31</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color" style="background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);"></span>
+                                <span>32</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 博幼藏書資料
+        const boyouBooksData = {
+            "橋梁書": [
+                {
+                    "編號": 27,
+                    "書名": "神奇樹屋(1)恐龍谷大冒險",
+                    "書箱": "5",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "橋梁書",
+                    "位置": "書箱5"
+                },
+                {
+                    "編號": 28,
+                    "書名": "神奇樹屋(2)黑暗城堡的秘密",
+                    "書箱": "5",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "橋梁書",
+                    "位置": "書箱5"
+                },
+                {
+                    "編號": 3,
+                    "書名": "可能小學歷史任務：騎著駱駝逛大唐",
+                    "書箱": "1",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱1"
+                },
+                {
+                    "編號": 4,
+                    "書名": "可能小學歷史任務：搖啊搖，搖到清明",
+                    "書箱": "1",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱1"
+                },
+                {
+                    "編號": 5,
+                    "書名": "可能小學歷史任務II：1.咚咚戰鼓闖戰國",
+                    "書箱": "1",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱1"
+                },
+                {
+                    "編號": 6,
+                    "書名": "可能小學歷史任務II：2.達達馬提到漢朝",
+                    "書箱": "1",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱1"
+                },
+                {
+                    "編號": 7,
+                    "書名": "可能小學歷史任務II：搖搖紙扇訪宋朝",
+                    "書箱": "1",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱1"
+                },
+                {
+                    "編號": 8,
+                    "書名": "可能小學歷史任務II：悠悠蒼鷹探元朝",
+                    "書箱": "1",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱1"
+                },
+                {
+                    "編號": 9,
+                    "書名": "彩繪中國經典名著：紅樓夢",
+                    "書箱": "1",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱1"
+                },
+                {
+                    "編號": 10,
+                    "書名": "彩繪中國經典名著：鏡花緣",
+                    "書箱": "1",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱1"
+                },
+                {
+                    "編號": 11,
+                    "書名": "希臘羅馬神話",
+                    "書箱": "2",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱2"
+                },
+                {
+                    "編號": 12,
+                    "書名": "格列佛遊記",
+                    "書箱": "2",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱2"
+                },
+                {
+                    "編號": 13,
+                    "書名": "最美麗的短文集",
+                    "書箱": "2",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱2"
+                },
+                {
+                    "編號": 14,
+                    "書名": "小公主",
+                    "書箱": "2",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱2"
+                },
+                {
+                    "編號": 15,
+                    "書名": "紅髮安妮",
+                    "書箱": "2",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱2"
+                },
+                {
+                    "編號": 16,
+                    "書名": "小王子",
+                    "書箱": "2",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱2"
+                },
+                {
+                    "編號": 17,
+                    "書名": "綠野仙蹤",
+                    "書箱": "2",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱2"
+                },
+                {
+                    "編號": 28,
+                    "書名": "唐吉訶德",
+                    "書箱": "4",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱4"
+                },
+                {
+                    "編號": 29,
+                    "書名": "三個問號偵探團：唱歌的幽靈",
+                    "書箱": "4",
+                    "數量": 5,
+                    "備註": "三個問號偵探團系列",
+                    "類別": "橋梁書",
+                    "位置": "書箱4"
+                },
+                {
+                    "編號": 30,
+                    "書名": "三個問號偵探團：鯊魚島",
+                    "書箱": "4",
+                    "數量": 5,
+                    "備註": "三個問號偵探團系列",
+                    "類別": "橋梁書",
+                    "位置": "書箱4"
+                },
+                {
+                    "編號": 31,
+                    "書名": "三個問號偵探團：海盜的墓穴",
+                    "書箱": "4",
+                    "數量": 5,
+                    "備註": "三個問號偵探團系列",
+                    "類別": "橋梁書",
+                    "位置": "書箱4"
+                },
+                {
+                    "編號": 32,
+                    "書名": "月光古堡的童話派對",
+                    "書箱": "4",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱4"
+                },
+                {
+                    "編號": 33,
+                    "書名": "狐狸的錢袋",
+                    "書箱": "4",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱4"
+                },
+                {
+                    "編號": 34,
+                    "書名": "板橋三娘子",
+                    "書箱": "8",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱8"
+                },
+                {
+                    "編號": 35,
+                    "書名": "大偵探奈特系列6-大偵探奈特的雪地奇案",
+                    "書箱": "8",
+                    "數量": 5,
+                    "備註": "大偵探奈特系列",
+                    "類別": "橋梁書",
+                    "位置": "書箱8"
+                },
+                {
+                    "編號": 36,
+                    "書名": "長頸鹿的信",
+                    "書箱": "8",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱8"
+                },
+                {
+                    "編號": 37,
+                    "書名": "字的童話笑話-十二聲笑",
+                    "書箱": "8",
+                    "數量": 5,
+                    "備註": "字的童話系列",
+                    "類別": "橋梁書",
+                    "位置": "書箱8"
+                },
+                {
+                    "編號": 38,
+                    "書名": "老鼠湯",
+                    "書箱": "8",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱8"
+                },
+                {
+                    "編號": 39,
+                    "書名": "小豬離家記",
+                    "書箱": "8",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱8"
+                },
+                {
+                    "編號": 40,
+                    "書名": "小火龍棒球隊",
+                    "書箱": "8",
+                    "數量": 6,
+                    "備註": "小火龍系列",
+                    "類別": "橋梁書",
+                    "位置": "書箱8"
+                },
+                {
+                    "編號": 41,
+                    "書名": "火龍家庭故事集",
+                    "書箱": "8",
+                    "數量": 6,
+                    "備註": "小火龍系列",
+                    "類別": "橋梁書",
+                    "位置": "書箱8"
+                },
+                {
+                    "編號": 18,
+                    "書名": "可能小學的愛台灣任務：快跑騰雲妖馬來了",
+                    "書箱": "3",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱3"
+                },
+                {
+                    "編號": 19,
+                    "書名": "可能小學的愛台灣任務：大人山下跌倒",
+                    "書箱": "3",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱3"
+                },
+                {
+                    "編號": 20,
+                    "書名": "可能小學的愛地球任務：拯救黑熊大作戰",
+                    "書箱": "3",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱3"
+                },
+                {
+                    "編號": 21,
+                    "書名": "可能小學的愛地球任務：大鼻子外星人之謎",
+                    "書箱": "3",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱3"
+                },
+                {
+                    "編號": 22,
+                    "書名": "可能小學的愛台灣任務 2: 鄭荷大戰",
+                    "書箱": "3",
+                    "數量": 9,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱3"
+                },
+                {
+                    "編號": 23,
+                    "書名": "可能小學的愛地球任務：真假荷蘭公主",
+                    "書箱": "3",
+                    "數量": 10,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱3"
+                },
+                {
+                    "編號": 24,
+                    "書名": "可能小學的愛地球任務：金沙湖探險記",
+                    "書箱": "3",
+                    "數量": 13,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱3"
+                },
+                {
+                    "編號": 25,
+                    "書名": "彩繪中國經典名著：史記故事",
+                    "書箱": "3",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱3"
+                },
+                {
+                    "編號": 26,
+                    "書名": "可能小學的愛地球任務：海賊島大冒險",
+                    "書箱": "3",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱3"
+                },
+                {
+                    "編號": 27,
+                    "書名": "彩繪中國經典名著：包公斷案",
+                    "書箱": "3",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "橋梁書",
+                    "位置": "書箱3"
+                }
+            ],
+            "神奇樹屋": [
+                {
+                    "編號": 1,
+                    "書名": "與海豚共舞",
+                    "書箱": "5",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱5"
+                },
+                {
+                    "編號": 2,
+                    "書名": "鐵達尼號驚魂記",
+                    "書箱": "5",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱5"
+                },
+                {
+                    "編號": 3,
+                    "書名": "印地安傳奇",
+                    "書箱": "5",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱5"
+                },
+                {
+                    "編號": 4,
+                    "書名": "絕命大地震",
+                    "書箱": "5",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱5"
+                },
+                {
+                    "編號": 5,
+                    "書名": "逃出大海嘯",
+                    "書箱": "5",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱5"
+                },
+                {
+                    "編號": 6,
+                    "書名": "狄更斯的耶誕誦",
+                    "書箱": "5",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱5"
+                },
+                {
+                    "編號": 7,
+                    "書名": "愛爾蘭任務",
+                    "書箱": "5",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱5"
+                },
+                {
+                    "編號": 8,
+                    "書名": "阿爾卑斯山歷險",
+                    "書箱": "5",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱5"
+                },
+                {
+                    "編號": 9,
+                    "書名": "希望之父林肯",
+                    "書箱": "5",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱5"
+                },
+                {
+                    "編號": 10,
+                    "書名": "月光下的魔笛",
+                    "書箱": "5",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱5"
+                },
+                {
+                    "編號": 11,
+                    "書名": "非洲草原逃生記",
+                    "書箱": "6",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱6"
+                },
+                {
+                    "編號": 12,
+                    "書名": "恐龍",
+                    "書箱": "6",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱6"
+                },
+                {
+                    "編號": 13,
+                    "書名": "雨林",
+                    "書箱": "6",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱6"
+                },
+                {
+                    "編號": 14,
+                    "書名": "劍齒虎與冰河時期",
+                    "書箱": "6",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱6"
+                },
+                {
+                    "編號": 15,
+                    "書名": "古希臘與奧林匹克",
+                    "書箱": "6",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱6"
+                },
+                {
+                    "編號": 16,
+                    "書名": "海盜",
+                    "書箱": "6",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱6"
+                },
+                {
+                    "編號": 17,
+                    "書名": "深海大章魚",
+                    "書箱": "6",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱6"
+                },
+                {
+                    "編號": 18,
+                    "書名": "印度尋寶記",
+                    "書箱": "6",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱6"
+                },
+                {
+                    "編號": 19,
+                    "書名": "地震與海嘯",
+                    "書箱": "6",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱6"
+                },
+                {
+                    "編號": 20,
+                    "書名": "愛上北極熊",
+                    "書箱": "6",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱6"
+                },
+                {
+                    "編號": 21,
+                    "書名": "印度叢林大逃亡",
+                    "書箱": "7",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱7"
+                },
+                {
+                    "編號": 22,
+                    "書名": "飛毯奇遇記",
+                    "書箱": "7",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱7"
+                },
+                {
+                    "編號": 23,
+                    "書名": "木乃伊與金字塔",
+                    "書箱": "7",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱7"
+                },
+                {
+                    "編號": 24,
+                    "書名": "鐵達尼號",
+                    "書箱": "7",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱7"
+                },
+                {
+                    "編號": 25,
+                    "書名": "龍捲風與颶風",
+                    "書箱": "7",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱7"
+                },
+                {
+                    "編號": 26,
+                    "書名": "衝出龍捲風",
+                    "書箱": "7",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱7"
+                },
+                {
+                    "編號": 27,
+                    "書名": "騎士與城堡",
+                    "書箱": "7",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱7"
+                },
+                {
+                    "編號": 28,
+                    "書名": "魔法師大對決",
+                    "書箱": "23",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱23"
+                },
+                {
+                    "編號": 29,
+                    "書名": "恐龍谷大冒險",
+                    "書箱": "23",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱23"
+                },
+                {
+                    "編號": 30,
+                    "書名": "勇闖古奧運",
+                    "書箱": "23",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱23"
+                },
+                {
+                    "編號": 31,
+                    "書名": "搶救無尾熊",
+                    "書箱": "23",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱23"
+                },
+                {
+                    "編號": 32,
+                    "書名": "驚天大海怪",
+                    "書箱": "23",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱23"
+                },
+                {
+                    "編號": 33,
+                    "書名": "漫遊到月球",
+                    "書箱": "23",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱23"
+                },
+                {
+                    "編號": 34,
+                    "書名": "戰地裡的天使",
+                    "書箱": "23",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱23"
+                },
+                {
+                    "編號": 35,
+                    "書名": "木乃伊之謎",
+                    "書箱": "23",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱23"
+                },
+                {
+                    "編號": 36,
+                    "書名": "再見大猩猩",
+                    "書箱": "23",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱23"
+                },
+                {
+                    "編號": 37,
+                    "書名": "幽靈城堡的寶藏",
+                    "書箱": "24",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱24"
+                },
+                {
+                    "編號": 38,
+                    "書名": "瘋狂嘉年華",
+                    "書箱": "24",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱24"
+                },
+                {
+                    "編號": 39,
+                    "書名": "擁抱南極企鵝",
+                    "書箱": "24",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱24"
+                },
+                {
+                    "編號": 40,
+                    "書名": "大熊貓救援行動",
+                    "書箱": "24",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱24"
+                },
+                {
+                    "編號": 41,
+                    "書名": "黑夜裡的騎士",
+                    "書箱": "24",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱24"
+                },
+                {
+                    "編號": 42,
+                    "書名": "龐貝城的末日",
+                    "書箱": "24",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱24"
+                },
+                {
+                    "編號": 43,
+                    "書名": "古墓裡的兵馬俑",
+                    "書箱": "24",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱24"
+                },
+                {
+                    "編號": 44,
+                    "書名": "忍者的秘密",
+                    "書箱": "25",
+                    "數量": 6,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱25"
+                },
+                {
+                    "編號": 45,
+                    "書名": "北極熊與北極",
+                    "書箱": "25",
+                    "數量": 6,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱25"
+                },
+                {
+                    "編號": 46,
+                    "書名": "古羅馬與龐貝城",
+                    "書箱": "25",
+                    "數量": 6,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱25"
+                },
+                {
+                    "編號": 47,
+                    "書名": "太空",
+                    "書箱": "25",
+                    "數量": 6,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱25"
+                },
+                {
+                    "編號": 48,
+                    "書名": "海豚與鯊魚",
+                    "書箱": "25",
+                    "數量": 6,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱25"
+                },
+                {
+                    "編號": 49,
+                    "書名": "難忘的感恩節",
+                    "書箱": "25",
+                    "數量": 6,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱25"
+                },
+                {
+                    "編號": 50,
+                    "書名": "鬼城裡的牛仔",
+                    "書箱": "25",
+                    "數量": 6,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱25"
+                },
+                {
+                    "編號": 51,
+                    "書名": "莎士比亞的舞台",
+                    "書箱": "25",
+                    "數量": 6,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱25"
+                },
+                {
+                    "編號": 52,
+                    "書名": "遇見華盛頓",
+                    "書箱": "26",
+                    "數量": 6,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱26"
+                },
+                {
+                    "編號": 53,
+                    "書名": "消失的圓桌武士",
+                    "書箱": "26",
+                    "數量": 6,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱26"
+                },
+                {
+                    "編號": 54,
+                    "書名": "獨眼冰巫師",
+                    "書箱": "26",
+                    "數量": 6,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱26"
+                },
+                {
+                    "編號": 55,
+                    "書名": "逃離維京海盜",
+                    "書箱": "26",
+                    "數量": 6,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱26"
+                },
+                {
+                    "編號": 56,
+                    "書名": "海盜的寶藏圖",
+                    "書箱": "26",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱26"
+                },
+                {
+                    "編號": 57,
+                    "書名": "雨林大驚奇",
+                    "書箱": "26",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱26"
+                },
+                {
+                    "編號": 58,
+                    "書名": "冰原上的劍齒虎",
+                    "書箱": "26",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱26"
+                },
+                {
+                    "編號": 59,
+                    "書名": "拯救獨角獸",
+                    "書箱": "26",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱26"
+                },
+                {
+                    "編號": 60,
+                    "書名": "鬼屋裡的音樂家",
+                    "書箱": "26",
+                    "數量": 5,
+                    "備註": "神奇樹屋系列",
+                    "類別": "神奇樹屋",
+                    "位置": "書箱26"
+                }
+            ],
+            "羅德達爾": [
+                {
+                    "編號": 1,
+                    "書名": "狐狸爸爸萬歲",
+                    "書箱": "11",
+                    "數量": 7,
+                    "備註": "羅德達爾系列",
+                    "類別": "羅德達爾",
+                    "位置": "書箱11"
+                },
+                {
+                    "編號": 2,
+                    "書名": "壞心的夫妻消失了",
+                    "書箱": "11",
+                    "數量": 7,
+                    "備註": "羅德達爾系列",
+                    "類別": "羅德達爾",
+                    "位置": "書箱11"
+                },
+                {
+                    "編號": 3,
+                    "書名": "喬治的神奇魔藥",
+                    "書箱": "11",
+                    "數量": 7,
+                    "備註": "羅德達爾系列",
+                    "類別": "羅德達爾",
+                    "位置": "書箱11"
+                },
+                {
+                    "編號": 4,
+                    "書名": "瑪蒂達",
+                    "書箱": "11",
+                    "數量": 7,
+                    "備註": "羅德達爾系列",
+                    "類別": "羅德達爾",
+                    "位置": "書箱11"
+                },
+                {
+                    "編號": 5,
+                    "書名": "女巫",
+                    "書箱": "11",
+                    "數量": 7,
+                    "備註": "羅德達爾系列",
+                    "類別": "羅德達爾",
+                    "位置": "書箱11"
+                },
+                {
+                    "編號": 6,
+                    "書名": "飛天巨桃歷險記",
+                    "書箱": "11",
+                    "數量": 7,
+                    "備註": "羅德達爾系列",
+                    "類別": "羅德達爾",
+                    "位置": "書箱11"
+                },
+                {
+                    "編號": 7,
+                    "書名": "神奇的玻璃升降機",
+                    "書箱": "12",
+                    "數量": 7,
+                    "備註": "羅德達爾系列",
+                    "類別": "羅德達爾",
+                    "位置": "書箱12"
+                },
+                {
+                    "編號": 8,
+                    "書名": "巧克力冒險工廠",
+                    "書箱": "12",
+                    "數量": 7,
+                    "備註": "羅德達爾系列",
+                    "類別": "羅德達爾",
+                    "位置": "書箱12"
+                },
+                {
+                    "編號": 9,
+                    "書名": "吹夢巨人",
+                    "書箱": "12",
+                    "數量": 7,
+                    "備註": "羅德達爾系列",
+                    "類別": "羅德達爾",
+                    "位置": "書箱12"
+                },
+                {
+                    "編號": 10,
+                    "書名": "小小比利和迷針族",
+                    "書箱": "11",
+                    "數量": 4,
+                    "備註": "羅德達爾系列",
+                    "類別": "羅德達爾",
+                    "位置": "書箱11"
+                }
+            ],
+            "繪本": [
+                {
+                    "編號": 1,
+                    "書名": "我是誰",
+                    "書箱": "27",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱27"
+                },
+                {
+                    "編號": 2,
+                    "書名": "太陽下山，回頭看",
+                    "書箱": "27",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱27"
+                },
+                {
+                    "編號": 3,
+                    "書名": "屋頂",
+                    "書箱": "27",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱27"
+                },
+                {
+                    "編號": 4,
+                    "書名": "山谷裡的丁香花",
+                    "書箱": "27",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱27"
+                },
+                {
+                    "編號": 5,
+                    "書名": "蘋果",
+                    "書箱": "27",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱27"
+                },
+                {
+                    "編號": 6,
+                    "書名": "阿婆的燈籠樹",
+                    "書箱": "27",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱27"
+                },
+                {
+                    "編號": 7,
+                    "書名": "好好哭吧",
+                    "書箱": "27",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱27"
+                },
+                {
+                    "編號": 8,
+                    "書名": "人魚公主",
+                    "書箱": "27",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱27"
+                },
+                {
+                    "編號": 9,
+                    "書名": "雪后",
+                    "書箱": "27",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱27"
+                },
+                {
+                    "編號": 10,
+                    "書名": "國王的新衣",
+                    "書箱": "27",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱27"
+                },
+                {
+                    "編號": 11,
+                    "書名": "野天鵝",
+                    "書箱": "27",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱27"
+                },
+                {
+                    "編號": 12,
+                    "書名": "百步蛇娶新娘(排灣族)",
+                    "書箱": "28",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱28"
+                },
+                {
+                    "編號": 13,
+                    "書名": "月亮的禮物(布農族)",
+                    "書箱": "28",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱28"
+                },
+                {
+                    "編號": 14,
+                    "書名": "大黑狗耕田(卑南族)",
+                    "書箱": "28",
+                    "數量": 5,
+                    "備註": "民族故事書",
+                    "類別": "繪本",
+                    "位置": "書箱28"
+                },
+                {
+                    "編號": 15,
+                    "書名": "希望快點長大(泰雅族)",
+                    "書箱": "28",
+                    "數量": 5,
+                    "備註": "民族故事書",
+                    "類別": "繪本",
+                    "位置": "書箱28"
+                },
+                {
+                    "編號": 16,
+                    "書名": "八歲一個人去旅行",
+                    "書箱": "29",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱29"
+                },
+                {
+                    "編號": 17,
+                    "書名": "占卜鳥希希利",
+                    "書箱": "28",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱28"
+                },
+                {
+                    "編號": 18,
+                    "書名": "冬瓜女兒",
+                    "書箱": "28",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱28"
+                },
+                {
+                    "編號": 19,
+                    "書名": "巴冷公主",
+                    "書箱": "28",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "繪本",
+                    "位置": "書箱28"
+                }
+            ],
+            "文字書": [
+                {
+                    "編號": 1,
+                    "書名": "波西傑克森-迷宮戰場",
+                    "書箱": "13",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱13"
+                },
+                {
+                    "編號": 2,
+                    "書名": "波西傑克森-終極天神",
+                    "書箱": "13",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱13"
+                },
+                {
+                    "編號": 3,
+                    "書名": "波西傑克森-妖魔之海",
+                    "書箱": "13",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱13"
+                },
+                {
+                    "編號": 4,
+                    "書名": "波西傑克森-泰坦魔咒",
+                    "書箱": "13",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱13"
+                },
+                {
+                    "編號": 5,
+                    "書名": "波西傑克森-索貝克之子",
+                    "書箱": "13",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱13"
+                },
+                {
+                    "編號": 6,
+                    "書名": "波西傑克森-神火之賊",
+                    "書箱": "13",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱13"
+                },
+                {
+                    "編號": 7,
+                    "書名": "波西傑克森-賽瑞比斯權杖",
+                    "書箱": "13",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱13"
+                },
+                {
+                    "編號": 8,
+                    "書名": "波西傑克森-機密檔案",
+                    "書箱": "14",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱14"
+                },
+                {
+                    "編號": 9,
+                    "書名": "愛德華的神奇旅行",
+                    "書箱": "14",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱14"
+                },
+                {
+                    "編號": 10,
+                    "書名": "小氣財神",
+                    "書箱": "14",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱14"
+                },
+                {
+                    "編號": 11,
+                    "書名": "怪物來敲門",
+                    "書箱": "14",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱14"
+                },
+                {
+                    "編號": 12,
+                    "書名": "一個阿富汗女孩的故事之戰火的小花",
+                    "書箱": "14",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱14"
+                },
+                {
+                    "編號": 13,
+                    "書名": "基督山恩仇記",
+                    "書箱": "16",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱16"
+                },
+                {
+                    "編號": 201,
+                    "書名": "青銅葵花",
+                    "書箱": "31",
+                    "數量": 2,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱31"
+                },
+                {
+                    "編號": 202,
+                    "書名": "說給我的孩子聽09-面對人生的十堂課",
+                    "書箱": "31",
+                    "數量": 2,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱31"
+                },
+                {
+                    "編號": 203,
+                    "書名": "居里夫人的故事",
+                    "書箱": "32",
+                    "數量": 2,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱32"
+                },
+                {
+                    "編號": 204,
+                    "書名": "葛瑞的冏日記2",
+                    "書箱": "15",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱15"
+                },
+                {
+                    "編號": 205,
+                    "書名": "葛瑞的冏日記3",
+                    "書箱": "15",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱15"
+                },
+                {
+                    "編號": 206,
+                    "書名": "葛瑞的冏日記11",
+                    "書箱": "15",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱15"
+                },
+                {
+                    "編號": 207,
+                    "書名": "雙城記",
+                    "書箱": "16",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱16"
+                },
+                {
+                    "編號": 208,
+                    "書名": "鹿苑長春",
+                    "書箱": "16",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱16"
+                },
+                {
+                    "編號": 209,
+                    "書名": "分數與小數的運算秘密：神奇酷數學3",
+                    "書箱": "16",
+                    "數量": 2,
+                    "備註": "神奇酷數學系列",
+                    "類別": "文字書",
+                    "位置": "書箱16"
+                },
+                {
+                    "編號": 210,
+                    "書名": "國家地理數字愛說話",
+                    "書箱": "16",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱16"
+                },
+                {
+                    "編號": 211,
+                    "書名": "星空下的奇幻旅程：蜥蜴女孩&羊駝男孩",
+                    "書箱": "16",
+                    "數量": 7,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱16"
+                },
+                {
+                    "編號": 212,
+                    "書名": "最後14堂星期二的課",
+                    "書箱": "17",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱17"
+                },
+                {
+                    "編號": 213,
+                    "書名": "羅密歐與茱麗葉",
+                    "書箱": "17",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱17"
+                },
+                {
+                    "編號": 214,
+                    "書名": "大地之歌",
+                    "書箱": "17",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱17"
+                },
+                {
+                    "編號": 215,
+                    "書名": "兒子的大玩偶",
+                    "書箱": "17",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱17"
+                },
+                {
+                    "編號": 216,
+                    "書名": "野性的呼喚",
+                    "書箱": "17",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱17"
+                },
+                {
+                    "編號": 217,
+                    "書名": "白牙",
+                    "書箱": "17",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱17"
+                },
+                {
+                    "編號": 218,
+                    "書名": "淒厲地航向未知(白鯨記)",
+                    "書箱": "17",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱17"
+                },
+                {
+                    "編號": 219,
+                    "書名": "李伯伯最想告訴你的22個科學家故事",
+                    "書箱": "18",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱18"
+                },
+                {
+                    "編號": 220,
+                    "書名": "面積與體積的測量絕招：神奇酷數學7",
+                    "書箱": "16",
+                    "數量": 2,
+                    "備註": "神奇酷數學系列",
+                    "類別": "文字書",
+                    "位置": "書箱16"
+                },
+                {
+                    "編號": 221,
+                    "書名": "西遊記(上)、(下)",
+                    "書箱": "18",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱18"
+                },
+                {
+                    "編號": 222,
+                    "書名": "第21頁",
+                    "書箱": "18",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱18"
+                },
+                {
+                    "編號": 223,
+                    "書名": "三口棺材",
+                    "書箱": "18",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱18"
+                },
+                {
+                    "編號": 224,
+                    "書名": "水滸傳(上)、(下)",
+                    "書箱": "18",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱18"
+                },
+                {
+                    "編號": 225,
+                    "書名": "臺北人",
+                    "書箱": "18",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱18"
+                },
+                {
+                    "編號": 226,
+                    "書名": "戰爭和和平",
+                    "書箱": "18",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱18"
+                },
+                {
+                    "編號": 227,
+                    "書名": "動物農莊",
+                    "書箱": "18",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱18"
+                },
+                {
+                    "編號": 228,
+                    "書名": "隱形人",
+                    "書箱": "19",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱19"
+                },
+                {
+                    "編號": 229,
+                    "書名": "乞丐王子",
+                    "書箱": "19",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱19"
+                },
+                {
+                    "編號": 230,
+                    "書名": "傲慢與偏見",
+                    "書箱": "19",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱19"
+                },
+                {
+                    "編號": 231,
+                    "書名": "蒼蠅王",
+                    "書箱": "19",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱19"
+                },
+                {
+                    "編號": 232,
+                    "書名": "金銀島",
+                    "書箱": "19",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱19"
+                },
+                {
+                    "編號": 233,
+                    "書名": "電學之父-法拉第的故事",
+                    "書箱": "19",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱19"
+                },
+                {
+                    "編號": 234,
+                    "書名": "湯姆歷險記",
+                    "書箱": "19",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱19"
+                },
+                {
+                    "編號": 235,
+                    "書名": "白馬酒館",
+                    "書箱": "19",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱19"
+                },
+                {
+                    "編號": 236,
+                    "書名": "悲慘世界",
+                    "書箱": "20",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱20"
+                },
+                {
+                    "編號": 237,
+                    "書名": "三國演義",
+                    "書箱": "20",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱20"
+                },
+                {
+                    "編號": 238,
+                    "書名": "東方快車謀殺案",
+                    "書箱": "20",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱20"
+                },
+                {
+                    "編號": 239,
+                    "書名": "茶花女",
+                    "書箱": "20",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱20"
+                },
+                {
+                    "編號": 240,
+                    "書名": "頑童流浪記",
+                    "書箱": "20",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱20"
+                },
+                {
+                    "編號": 241,
+                    "書名": "一個都不留(遠流)",
+                    "書箱": "20",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱20"
+                },
+                {
+                    "編號": 242,
+                    "書名": "祕密花園(天下)",
+                    "書箱": "20",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱20"
+                },
+                {
+                    "編號": 243,
+                    "書名": "三劍客",
+                    "書箱": "21",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱21"
+                },
+                {
+                    "編號": 244,
+                    "書名": "簡愛",
+                    "書箱": "21",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱21"
+                },
+                {
+                    "編號": 245,
+                    "書名": "安妮的日記",
+                    "書箱": "21",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱21"
+                },
+                {
+                    "編號": 246,
+                    "書名": "火星人入侵",
+                    "書箱": "21",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱21"
+                },
+                {
+                    "編號": 247,
+                    "書名": "科學怪人",
+                    "書箱": "21",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱21"
+                },
+                {
+                    "編號": 248,
+                    "書名": "老人與海",
+                    "書箱": "21",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱21"
+                },
+                {
+                    "編號": 249,
+                    "書名": "化身博士",
+                    "書箱": "21",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱21"
+                },
+                {
+                    "編號": 250,
+                    "書名": "青鳥",
+                    "書箱": "21",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱21"
+                },
+                {
+                    "編號": 251,
+                    "書名": "大地",
+                    "書箱": "22",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱22"
+                },
+                {
+                    "編號": 252,
+                    "書名": "約翰克利斯朵夫",
+                    "書箱": "22",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱22"
+                },
+                {
+                    "編號": 253,
+                    "書名": "罪與罰",
+                    "書箱": "22",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱22"
+                },
+                {
+                    "編號": 254,
+                    "書名": "叢林奇談(上)、(下)",
+                    "書箱": "22",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱22"
+                },
+                {
+                    "編號": 255,
+                    "書名": "王子復仇記",
+                    "書箱": "22",
+                    "數量": 5,
+                    "備註": "",
+                    "類別": "文字書",
+                    "位置": "書箱22"
+                }
+            ]
+        };
+
+        // 全域變數
+        let allBooks = [];
+        let filteredBooks = [];
+
+        // 初始化頁面
+        function initBoyouBooks() {
+            // 整理所有書籍資料
+            organizeAllBooks();
+            updateStatistics();
+            renderBookCategories();
+            renderMagicTreeHouse();
+            renderRoaldDahl();
+            renderEthnicBooks();
+            setupSearchListeners();
+            persistBoyouBooksData();
+        }
+
+        // 整理所有書籍資料
+        function organizeAllBooks() {
+            allBooks = [];
+            Object.entries(boyouBooksData).forEach(([category, books]) => {
+                books.forEach(book => {
+                    allBooks.push({
+                        ...book,
+                        category: category
+                    });
+                });
+            });
+            filteredBooks = [...allBooks];
+        }
+
+        function persistBoyouBooksData() {
+            try {
+                localStorage.setItem('lib_boyou_books_v1', JSON.stringify(boyouBooksData));
+            } catch (e) {
+                console.error('persistBoyouBooksData error:', e);
+            }
+        }
+
+        // 設定搜尋事件監聽器
+        function setupSearchListeners() {
+            const searchInput = document.getElementById('search-input');
+            const searchBtn = document.getElementById('search-btn');
+            const clearBtn = document.getElementById('clear-search-btn');
+            const categoryFilter = document.getElementById('category-filter');
+            const boxFilter = document.getElementById('box-filter');
+
+            // 搜尋輸入
+            searchInput.addEventListener('input', performSearch);
+            searchBtn.addEventListener('click', performSearch);
+            
+            // 清除搜尋
+            clearBtn.addEventListener('click', clearSearch);
+            
+            // 篩選器
+            categoryFilter.addEventListener('change', performSearch);
+            boxFilter.addEventListener('change', performSearch);
+
+            // Enter鍵搜尋
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        }
+
+        // 執行搜尋
+        function performSearch() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            const categoryFilter = document.getElementById('category-filter').value;
+            const boxFilter = document.getElementById('box-filter').value;
+            const clearBtn = document.getElementById('clear-search-btn');
+            const resultsInfo = document.getElementById('search-results-info');
+            const searchCount = document.getElementById('search-count');
+
+            // 顯示/隱藏清除按鈕
+            if (searchTerm || categoryFilter || boxFilter) {
+                clearBtn.style.display = 'flex';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+
+            // 篩選書籍
+            filteredBooks = allBooks.filter(book => {
+                // 搜尋關鍵字匹配
+                const matchesSearch = !searchTerm || 
+                    book.書名.toLowerCase().includes(searchTerm) ||
+                    book.編號.toString().includes(searchTerm) ||
+                    book.書箱.includes(searchTerm) ||
+                    book.category.includes(searchTerm);
+
+                // 類別篩選
+                const matchesCategory = !categoryFilter || book.category === categoryFilter;
+
+                // 書箱篩選
+                const matchesBox = !boxFilter || book.書箱 === boxFilter;
+
+                return matchesSearch && matchesCategory && matchesBox;
+            });
+
+            // 更新搜尋結果資訊
+            if (searchTerm || categoryFilter || boxFilter) {
+                searchCount.textContent = filteredBooks.length;
+                resultsInfo.style.display = 'block';
+            } else {
+                resultsInfo.style.display = 'none';
+            }
+
+            // 重新渲染書籍分類
+            renderBookCategories();
+            renderMagicTreeHouse();
+            renderRoaldDahl();
+            renderEthnicBooks();
+        }
+
+        // 清除搜尋
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('category-filter').value = '';
+            document.getElementById('box-filter').value = '';
+            document.getElementById('clear-search-btn').style.display = 'none';
+            document.getElementById('search-results-info').style.display = 'none';
+            
+            filteredBooks = [...allBooks];
+            renderBookCategories();
+            renderMagicTreeHouse();
+            renderRoaldDahl();
+            renderEthnicBooks();
+        }
+
+        // 高亮搜尋關鍵字
+        function highlightSearchTerm(text, searchTerm) {
+            if (!searchTerm) return text;
+            
+            const regex = new RegExp(`(${searchTerm})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        // 更新統計資訊
+        function updateStatistics() {
+            let totalBooks = 0;
+            let totalCopies = 0;
+            let totalBoxes = new Set();
+            let ethnicBooksCount = 0;
+
+            Object.values(boyouBooksData).forEach(books => {
+                totalBooks += books.length;
+                books.forEach(book => {
+                    totalCopies += book.數量;
+                    totalBoxes.add(book.書箱);
+                    if (book.書名.includes('排灣族') || book.書名.includes('布農族')) {
+                        ethnicBooksCount++;
+                    }
+                });
+            });
+
+            document.getElementById('total-books').textContent = totalBooks;
+            document.getElementById('total-copies').textContent = totalCopies;
+            document.getElementById('total-boxes').textContent = totalBoxes.size;
+            document.getElementById('ethnic-books-count').textContent = ethnicBooksCount;
+        }
+
+        // 渲染書籍分類
+        function renderBookCategories() {
+            const categories = ['繪本', '橋梁書', '文字書'];
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            categories.forEach(category => {
+                const containerId = category === '繪本' ? 'picture-books-list' : 
+                                   category === '橋梁書' ? 'bridge-books-list' : 'text-books-list';
+                
+                const container = document.getElementById(containerId);
+                
+                // 從篩選後的書籍中取得該類別的書籍
+                const categoryBooks = filteredBooks.filter(book => book.category === category);
+                
+                if (categoryBooks.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-results">
+                            <i class="fas fa-book-open"></i>
+                            <h3>沒有找到書籍</h3>
+                            <p>請嘗試調整搜尋條件</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = categoryBooks.map(book => createBookItem(book, category, searchTerm)).join('');
+                }
+            });
+        }
+
+        // 建立書籍項目
+        function createBookItem(book, category, searchTerm = '') {
+            const borderColor = category === '神奇樹屋' ? '#ff9800' :
+                               category === '羅德達爾' ? '#8e44ad' :
+                               category === '繪本' ? '#ff6b6b' : 
+                               category === '橋梁書' ? '#f39c12' : '#9b59b6';
+            
+            const highlightedTitle = highlightSearchTerm(book.書名, searchTerm);
+            const highlightedNumber = highlightSearchTerm(book.編號.toString(), searchTerm);
+            const highlightedBox = highlightSearchTerm(book.書箱, searchTerm);
+            
+            // 根據書箱號碼添加對應的顏色類別
+            const boxClass = `box-${book.書箱}`;
+            
+            return `
+                <div class="book-item" style="border-left-color: ${borderColor};">
+                    <div class="book-info">
+                        <div class="book-title">${highlightedTitle}</div>
+                        <div class="book-details">
+                            <span><i class="fas fa-barcode"></i> 編號：${highlightedNumber}</span>
+                            <span><i class="fas fa-box"></i> 書箱：<span class="box-number box-${book.書箱}">${highlightedBox}</span></span>
+                        </div>
+                    </div>
+                    <div class="book-stats">
+                        <div class="book-count">${book.數量} 本</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 渲染神奇樹屋系列
+        function renderMagicTreeHouse() {
+            const container = document.getElementById('magic-tree-house-list');
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            // 從篩選後的書籍中取得神奇樹屋書籍
+            const magicTreeHouseBooks = filteredBooks.filter(book => book.category === '神奇樹屋');
+            
+            if (magicTreeHouseBooks.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-tree"></i>
+                        <h3>沒有找到神奇樹屋書籍</h3>
+                        <p>請嘗試調整搜尋條件</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = magicTreeHouseBooks.map(book => createBookItem(book, '神奇樹屋', searchTerm)).join('');
+            }
+        }
+
+        // 渲染羅德達爾系列
+        function renderRoaldDahl() {
+            const container = document.getElementById('roald-dahl-list');
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            // 從篩選後的書籍中取得羅德達爾書籍
+            const roaldDahlBooks = filteredBooks.filter(book => book.category === '羅德達爾');
+            
+            if (roaldDahlBooks.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-magic"></i>
+                        <h3>沒有找到羅德達爾書籍</h3>
+                        <p>請嘗試調整搜尋條件</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = roaldDahlBooks.map(book => createBookItem(book, '羅德達爾', searchTerm)).join('');
+            }
+        }
+
+        // 渲染民族故事書
+        function renderEthnicBooks() {
+            const ethnicBooks = filteredBooks.filter(book => 
+                book.書名.includes('排灣族') || book.書名.includes('布農族') || 
+                book.書名.includes('卑南族') || book.書名.includes('泰雅族')
+            );
+            
+            const container = document.getElementById('ethnic-books-list');
+            
+            if (ethnicBooks.length === 0) {
+                container.innerHTML = `
+                    <div class="no-results">
+                        <i class="fas fa-star"></i>
+                        <h3>沒有找到民族故事書</h3>
+                        <p>請嘗試調整搜尋條件</p>
+                    </div>
+                `;
+            } else {
+                const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+                container.innerHTML = ethnicBooks.map(book => {
+                    let tribe = '';
+                    if (book.書名.includes('排灣族')) tribe = '排灣族';
+                    else if (book.書名.includes('布農族')) tribe = '布農族';
+                    else if (book.書名.includes('卑南族')) tribe = '卑南族';
+                    else if (book.書名.includes('泰雅族')) tribe = '泰雅族';
+                    
+                    const highlightedTitle = highlightSearchTerm(book.書名, searchTerm);
+                    const highlightedTribe = highlightSearchTerm(tribe, searchTerm);
+                    
+                    return `
+                        <div class="ethnic-book">
+                            <div class="ethnic-tribe">${highlightedTribe}故事</div>
+                            <div class="ethnic-title">${highlightedTitle}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // 返回主頁
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        // 切換位置圖放大
+        function toggleMapZoom() {
+            const modal = document.getElementById('map-modal');
+            modal.style.display = 'block';
+        }
+
+        // 關閉位置圖模態框
+        function closeMapModal() {
+            const modal = document.getElementById('map-modal');
+            modal.style.display = 'none';
+        }
+
+        // 點擊圖片也可以放大
+        function initMapClick() {
+            const mapImage = document.getElementById('location-map');
+            if (mapImage) {
+                mapImage.addEventListener('click', toggleMapZoom);
+            }
+        }
+
+        // 點擊模態框背景關閉
+        function initModalClick() {
+            const modal = document.getElementById('map-modal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeMapModal();
+                    }
+                });
+            }
+        }
+
+        // ESC鍵關閉模態框
+        function initEscapeKey() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeMapModal();
+                }
+            });
+        }
+
+        // 頁面載入完成後初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            persistBoyouBooksData();
+            initBoyouBooks();
+            initMapClick();
+            initModalClick();
+            initEscapeKey();
+        });
+    </script>
+</body>
+</html>

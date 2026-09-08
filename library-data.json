@@ -1,0 +1,242 @@
+{
+  "library": {
+    "name": "博幼圖書館",
+    "lastUpdated": "2024-01-01",
+    "collections": {
+      "繪本": [
+        {
+          "id": 1,
+          "title": "我是誰",
+          "box": "27",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱27"
+        },
+        {
+          "id": 2,
+          "title": "太陽下山,回頭看",
+          "box": "27",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱27"
+        },
+        {
+          "id": 3,
+          "title": "屋頂",
+          "box": "27",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱27"
+        },
+        {
+          "id": 4,
+          "title": "山谷裡的丁香花",
+          "box": "27",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱27"
+        },
+        {
+          "id": 5,
+          "title": "蘋果",
+          "box": "27",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱27"
+        },
+        {
+          "id": 6,
+          "title": "阿婆的燈籠樹",
+          "box": "27",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱27"
+        },
+        {
+          "id": 7,
+          "title": "好好哭吧",
+          "box": "27",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱27"
+        },
+        {
+          "id": 8,
+          "title": "人魚公主",
+          "box": "27",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱27"
+        },
+        {
+          "id": 9,
+          "title": "雪后",
+          "box": "27",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱27"
+        },
+        {
+          "id": 10,
+          "title": "國王的新衣",
+          "box": "27",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱27"
+        },
+        {
+          "id": 11,
+          "title": "野天鵝",
+          "box": "27",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱27"
+        },
+        {
+          "id": 12,
+          "title": "百步蛇娶新娘(排灣族)",
+          "box": "28",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱28"
+        },
+        {
+          "id": 13,
+          "title": "月亮的禮物(布農族)",
+          "box": "28",
+          "quantity": 5,
+          "remarks": "",
+          "category": "繪本",
+          "location": "A區-書箱28"
+        }
+      ],
+      "橋梁書": [
+        {
+          "id": 101,
+          "title": "傳說中什麼都能魔女商店",
+          "box": "29",
+          "quantity": 3,
+          "remarks": "",
+          "category": "橋梁書",
+          "location": "B區-書箱29"
+        },
+        {
+          "id": 102,
+          "title": "妖怪新聞社3",
+          "box": "29",
+          "quantity": 3,
+          "remarks": "",
+          "category": "橋梁書",
+          "location": "B區-書箱29"
+        },
+        {
+          "id": 103,
+          "title": "美女與野獸",
+          "box": "30",
+          "quantity": 3,
+          "remarks": "",
+          "category": "橋梁書",
+          "location": "B區-書箱30"
+        }
+      ],
+      "文字書": [
+        {
+          "id": 201,
+          "title": "青銅葵花",
+          "box": "31",
+          "quantity": 2,
+          "remarks": "",
+          "category": "文字書",
+          "location": "C區-書箱31"
+        },
+        {
+          "id": 202,
+          "title": "說給我的孩子聽09-面對人生的十堂課",
+          "box": "31",
+          "quantity": 2,
+          "remarks": "",
+          "category": "文字書",
+          "location": "C區-書箱31"
+        },
+        {
+          "id": 203,
+          "title": "居里夫人的故事",
+          "box": "32",
+          "quantity": 2,
+          "remarks": "",
+          "category": "文字書",
+          "location": "C區-書箱32"
+        }
+      ]
+    },
+    "locations": {
+      "A區": {
+        "name": "繪本區",
+        "description": "適合學齡前兒童的繪本區",
+        "boxes": {
+          "27": {
+            "capacity": 50,
+            "currentBooks": 55,
+            "status": "滿",
+            "color": "#ff6b6b"
+          },
+          "28": {
+            "capacity": 50,
+            "currentBooks": 10,
+            "status": "空",
+            "color": "#ff6b6b"
+          }
+        }
+      },
+      "B區": {
+        "name": "橋梁書區",
+        "description": "適合小學低年級的橋梁書區",
+        "boxes": {
+          "29": {
+            "capacity": 40,
+            "currentBooks": 6,
+            "status": "空",
+            "color": "#f39c12"
+          },
+          "30": {
+            "capacity": 40,
+            "currentBooks": 3,
+            "status": "空",
+            "color": "#f39c12"
+          }
+        }
+      },
+      "C區": {
+        "name": "文字書區",
+        "description": "適合小學中高年級的文字書區",
+        "boxes": {
+          "31": {
+            "capacity": 30,
+            "currentBooks": 4,
+            "status": "空",
+            "color": "#9b59b6"
+          },
+          "32": {
+            "capacity": 30,
+            "currentBooks": 2,
+            "status": "空",
+            "color": "#9b59b6"
+          }
+        }
+      }
+    }
+  }
+}
+
