@@ -13,6 +13,7 @@ class LibrarySystem {
         this.autoSyncCooldownUntil = 0;
         this.autoSyncMinIntervalMs = 30000;
         this.autoSyncDebounceMs = 1500;
+        this.borrowedSyncTimer = null;
         this.pushNowInFlight = false;
         this.suspendAutoSync = false;
         this.currentBookType = 'series'; // 預設顯示系列書
@@ -1198,17 +1199,39 @@ class LibrarySystem {
                 return;
             }
 
-            // 借閱/歸還先讓畫面成功更新，再交給背景同步，避免手機網路慢時卡住操作。
-            this.scheduleAutoSync();
             if (action === 'borrow' || action === 'return') {
+                // 借閱/歸還只同步借閱記錄，不上傳完整館藏，避免手機資料量過大。
+                this.scheduleBorrowedBooksSync();
                 return;
             }
+
+            this.scheduleAutoSync();
 
             // 館藏資料異動才立刻嘗試上傳（靜默模式）
             this.pushToGoogleSheetsNow();
         } catch (e) {
             console.error('triggerSyncForAction error:', e);
         }
+    }
+
+    scheduleBorrowedBooksSync(delayMs = 1200) {
+        if (this.borrowedSyncTimer) {
+            clearTimeout(this.borrowedSyncTimer);
+        }
+
+        this.borrowedSyncTimer = setTimeout(async () => {
+            this.borrowedSyncTimer = null;
+            const now = Date.now();
+            if (now < this.autoSyncCooldownUntil) return;
+
+            try {
+                await this.pushBorrowedBooksToGoogleSheets({ silent: true });
+                this.autoSyncLastRunAt = Date.now();
+            } catch (error) {
+                this.autoSyncCooldownUntil = Date.now() + 60000;
+                console.error('scheduleBorrowedBooksSync error:', error);
+            }
+        }, delayMs);
     }
 
     async autoPushToGoogleSheets() {
