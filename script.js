@@ -1219,6 +1219,11 @@ class LibrarySystem {
             clearTimeout(this.borrowedSyncTimer);
         }
 
+        // 手機切換頁面後可能暫停計時器，借閱資料因此來不及上傳。
+        // 手機端改為短延遲立即同步，桌面端維持原本的防抖時間。
+        const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+        const syncDelay = isMobile ? 0 : delayMs;
+
         this.borrowedSyncTimer = setTimeout(async () => {
             this.borrowedSyncTimer = null;
             const now = Date.now();
@@ -1231,7 +1236,7 @@ class LibrarySystem {
                 this.autoSyncCooldownUntil = Date.now() + 60000;
                 console.error('scheduleBorrowedBooksSync error:', error);
             }
-        }, delayMs);
+        }, syncDelay);
     }
 
     async autoPushToGoogleSheets() {
@@ -1832,9 +1837,10 @@ class LibrarySystem {
 
         const isMobile = window.innerWidth <= 768;
         if (isMobile) {
-            if (!panel.classList.contains('open') && !panel.classList.contains('minimized')) {
-                panel.classList.add('minimized');
-            }
+            // 快速借閱輸入框位於借閱紀錄面板內；手機預設收合會讓使用者看不到借閱入口。
+            // 保持面板可操作，仍可透過標題列按鈕收合。
+            panel.classList.remove('minimized');
+            panel.classList.add('open');
         } else {
             if (!panel.classList.contains('open') && !panel.classList.contains('minimized')) {
                 panel.classList.add('open');
@@ -7190,6 +7196,8 @@ class LibrarySystem {
 
         this.saveData();
         this.renderBorrowedBooks();
+        // 自訂還書日期也要同步到 Google Sheets，否則只會停留在本機。
+        this.triggerSyncForAction('return');
         this.showToast(`已將「${record.bookTitle}」的還書時間設為 ${days} 天後（${newDate.toLocaleDateString('zh-TW')}）`, 'success');
     }
 
@@ -7225,6 +7233,8 @@ class LibrarySystem {
 
         this.saveData();
         this.renderBorrowedBooks();
+        // 批量調整同樣需要上傳更新後的借閱紀錄。
+        this.triggerSyncForAction('return');
         this.showToast(`已將 ${updated.length} 筆借閱的還書時間設為 ${days} 天後（${newDate.toLocaleDateString('zh-TW')}）`, 'success');
     }
 
