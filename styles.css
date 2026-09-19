@@ -6364,7 +6364,7 @@ body {
 
 @media (max-width: 640px) {
     .mobile-search-fab {
-        display: inline-flex;
+        display: inline-flex !important;
         position: fixed;
         left: 50%;
         bottom: calc(16px + env(safe-area-inset-bottom));
@@ -6382,7 +6382,19 @@ body {
         font-size: 0.95rem;
         font-weight: 800;
         box-shadow: 0 10px 28px rgba(22, 163, 74, 0.32);
-        z-index: 1004;
+        z-index: 1400;
+        cursor: pointer;
+    }
+
+    .mobile-search-fab span {
+        display: inline !important;
+    }
+
+    .admin-search-tools .toolbar-search-btn,
+    #search-btn {
+        display: inline-flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 
     .mobile-search-fab:active {

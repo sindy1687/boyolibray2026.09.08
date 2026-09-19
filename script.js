@@ -833,7 +833,6 @@ class LibrarySystem {
         this.updateStats();
         this.updateUserDisplay();
         this.updateAdminControls();
-        this.restoreGoogleSyncStatus();
         this.startAutoUpdate();
     }
 
@@ -1129,23 +1128,15 @@ class LibrarySystem {
             document.body.appendChild(indicator);
         }
         indicator.dataset.state = state;
-        if (state === 'success') {
-            localStorage.setItem('lib_google_sync_status_v1', JSON.stringify({ state, message, at: Date.now() }));
-        }
         indicator.style.background = state === 'success' ? '#dcfce7' : state === 'error' ? '#fee2e2' : '#e0e7ff';
         indicator.style.color = state === 'success' ? '#166534' : state === 'error' ? '#991b1b' : '#3730a3';
         indicator.textContent = message;
         indicator.style.opacity = '1';
-    }
-
-    restoreGoogleSyncStatus() {
-        try {
-            const saved = JSON.parse(localStorage.getItem('lib_google_sync_status_v1') || 'null');
-            if (saved?.state === 'success' && saved.message) {
-                this.updateGoogleSyncStatus('success', saved.message);
-            }
-        } catch (_) {
-            localStorage.removeItem('lib_google_sync_status_v1');
+        if (state === 'success') {
+            window.clearTimeout(this.googleSyncStatusTimer);
+            this.googleSyncStatusTimer = window.setTimeout(() => {
+                indicator.style.opacity = '0';
+            }, 4500);
         }
     }
 
@@ -2492,7 +2483,7 @@ class LibrarySystem {
             }, 'POST');
 
             if (result && result.ok) {
-                this.updateGoogleSyncStatus('success', `✓ 已上傳 Google Sheet：${borrowedBooksToUpload.length} 筆借閱記錄（${new Date().toLocaleString('zh-TW')}）`);
+                this.updateGoogleSyncStatus('success', '✓ 上傳完成，資料已送到 Google Sheet');
                 if (!silent) this.showToast('借閱記錄上傳完成', 'success');
             } else {
                 this.updateGoogleSyncStatus('error', `上傳未確認：${result?.error || 'Google Sheet 回應格式不符'}`);
@@ -2572,7 +2563,7 @@ class LibrarySystem {
             if (result && result.ok) {
                 // 上傳成功後，更新版本信息
                 this.updateBookListVersion();
-                this.updateGoogleSyncStatus('success', `✓ 已完整上傳 Google Sheet：${normalizedBooks.length} 本書籍、${borrowedBooksToUpload.length} 筆借閱記錄（${new Date().toLocaleString('zh-TW')}）`);
+                this.updateGoogleSyncStatus('success', '✓ 上傳完成，資料已送到 Google Sheet');
                 if (!silent) this.showToast('上傳完成', 'success');
             } else {
                 this.updateGoogleSyncStatus('error', `上傳未確認：${result?.error || 'Google Sheet 回應格式不符'}`);
