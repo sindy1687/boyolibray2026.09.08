@@ -28,7 +28,8 @@ class LibrarySystem {
         this.bookLookupInFlight = new Map();
         this.googleBooksCooldownUntil = 0;
         this.autoFillTimers = new Map();
-        this.googleSheetTimeoutMs = 18000;
+        // 手機網路與 Apps Script 冷啟動較慢，保留足夠時間完成同步。
+        this.googleSheetTimeoutMs = 45000;
         
         // API 節流與重試機制
         this.lastApiRequestTime = 0;
@@ -627,17 +628,24 @@ class LibrarySystem {
 
         if (successCount > 0) {
             this.saveData();
-            this.triggerSyncForAction('borrow');
             this.renderBooks();
             this.renderBorrowedBooks();
             this.updateStats();
+
+            // 批量操作必須等待雲端寫入完成，避免使用者關閉手機頁面後資料還在佇列中。
+            try {
+                await this.pushBorrowedBooksToGoogleSheets({ silent: true });
+                this.showToast(`批量借閱成功：${successCount} 本，資料已完整上傳 Google Sheet，可關閉網頁`, 'success', 10000);
+            } catch (error) {
+                this.showToast(`批量借閱完成，但上傳失敗：${error.message || '請保持頁面開啟後重試'}`, 'warning', 10000);
+            }
         }
 
         if (input && failed.length === 0) input.value = '';
 
         if (failed.length > 0) {
             this.showToast(`完成 ${successCount} 本，失敗 ${failed.length} 本：${failed.slice(0, 3).map(x => `${x.code} ${x.message}`).join('；')}`, successCount > 0 ? 'warning' : 'error');
-        } else {
+        } else if (successCount === 0) {
             this.showToast(`批量借閱成功：${successCount} 本`, 'success');
         }
     }
@@ -683,17 +691,23 @@ class LibrarySystem {
 
         if (totalReturned > 0) {
             this.saveData();
-            this.triggerSyncForAction('return');
             this.renderBooks();
             this.renderBorrowedBooks();
             this.updateStats();
+
+            try {
+                await this.pushBorrowedBooksToGoogleSheets({ silent: true });
+                this.showToast(`批量歸還成功：${totalReturned} 本，資料已完整上傳 Google Sheet，可關閉網頁`, 'success', 10000);
+            } catch (error) {
+                this.showToast(`批量歸還完成，但上傳失敗：${error.message || '請保持頁面開啟後重試'}`, 'warning', 10000);
+            }
         }
 
         if (input && failed.length === 0) input.value = '';
 
         if (failed.length > 0) {
             this.showToast(`完成 ${totalReturned} 本，失敗 ${failed.length} 本：${failed.slice(0, 3).map(x => `${x.code} ${x.message}`).join('；')}`, totalReturned > 0 ? 'warning' : 'error');
-        } else {
+        } else if (totalReturned === 0) {
             this.showToast(`批量歸還成功：${totalReturned} 本`, 'success');
         }
     }
@@ -819,6 +833,7 @@ class LibrarySystem {
         this.updateStats();
         this.updateUserDisplay();
         this.updateAdminControls();
+        this.restoreGoogleSyncStatus();
         this.startAutoUpdate();
     }
 
@@ -1102,6 +1117,36 @@ class LibrarySystem {
     getGoogleWebAppUrl() {
         const url = (this.settings?.googleWebAppUrl || '').trim();
         return url || null;
+    }
+
+    updateGoogleSyncStatus(state, message) {
+        let indicator = document.getElementById('google-sync-status');
+        if (!indicator) {
+            indicator = document.createElement('div');
+            indicator.id = 'google-sync-status';
+            indicator.setAttribute('role', 'status');
+            indicator.style.cssText = 'position:fixed;left:16px;bottom:16px;z-index:1200;max-width:min(92vw,420px);padding:10px 14px;border-radius:12px;font-size:14px;font-weight:700;box-shadow:0 8px 24px rgba(15,23,42,.16);transition:opacity .2s ease;';
+            document.body.appendChild(indicator);
+        }
+        indicator.dataset.state = state;
+        if (state === 'success') {
+            localStorage.setItem('lib_google_sync_status_v1', JSON.stringify({ state, message, at: Date.now() }));
+        }
+        indicator.style.background = state === 'success' ? '#dcfce7' : state === 'error' ? '#fee2e2' : '#e0e7ff';
+        indicator.style.color = state === 'success' ? '#166534' : state === 'error' ? '#991b1b' : '#3730a3';
+        indicator.textContent = message;
+        indicator.style.opacity = '1';
+    }
+
+    restoreGoogleSyncStatus() {
+        try {
+            const saved = JSON.parse(localStorage.getItem('lib_google_sync_status_v1') || 'null');
+            if (saved?.state === 'success' && saved.message) {
+                this.updateGoogleSyncStatus('success', saved.message);
+            }
+        } catch (_) {
+            localStorage.removeItem('lib_google_sync_status_v1');
+        }
     }
 
     getGoogleBooksApiKey() {
@@ -2426,6 +2471,7 @@ class LibrarySystem {
 
         try {
             if (!silent) this.showToast('正在上傳借閱記錄到 Google Sheets...', 'info');
+            this.updateGoogleSyncStatus('uploading', '正在上傳借閱記錄到 Google Sheet…');
 
             const remoteResult = await this.callGoogleApi(url, { action: 'pull' }, 'GET').catch(() => null);
             const remoteBorrowed = remoteResult?.ok && Array.isArray(remoteResult?.data?.borrowedBooks)
@@ -2446,12 +2492,15 @@ class LibrarySystem {
             }, 'POST');
 
             if (result && result.ok) {
+                this.updateGoogleSyncStatus('success', `✓ 已上傳 Google Sheet：${borrowedBooksToUpload.length} 筆借閱記錄（${new Date().toLocaleString('zh-TW')}）`);
                 if (!silent) this.showToast('借閱記錄上傳完成', 'success');
             } else {
+                this.updateGoogleSyncStatus('error', `上傳未確認：${result?.error || 'Google Sheet 回應格式不符'}`);
                 if (!silent) this.showToast('上傳完成，但回應格式不符', 'warning');
             }
         } catch (error) {
             console.error('pushBorrowedBooksToGoogleSheets error:', error);
+            this.updateGoogleSyncStatus('error', `✕ Google Sheet 上傳失敗：${error.message || '請稍後重試'}`);
             if (!silent) this.showToast(`上傳失敗：${error.message || '請檢查網路連線'}`, 'error');
             if (silent) return;
             throw error;
@@ -2472,6 +2521,7 @@ class LibrarySystem {
 
         try {
             if (!silent) this.showToast('正在上傳到 Google Sheets...', 'info');
+            this.updateGoogleSyncStatus('uploading', '正在完整上傳書籍與借閱資料到 Google Sheet…');
             const boyouBooks = JSON.parse(localStorage.getItem('lib_boyou_books_v1') || 'null') || {};
 
             // 去重：根據書籍 ID 移除重複項
@@ -2522,12 +2572,15 @@ class LibrarySystem {
             if (result && result.ok) {
                 // 上傳成功後，更新版本信息
                 this.updateBookListVersion();
+                this.updateGoogleSyncStatus('success', `✓ 已完整上傳 Google Sheet：${normalizedBooks.length} 本書籍、${borrowedBooksToUpload.length} 筆借閱記錄（${new Date().toLocaleString('zh-TW')}）`);
                 if (!silent) this.showToast('上傳完成', 'success');
             } else {
+                this.updateGoogleSyncStatus('error', `上傳未確認：${result?.error || 'Google Sheet 回應格式不符'}`);
                 if (!silent) this.showToast(`上傳完成，但回應格式不符：${result?.error || ''}`, 'warning');
             }
         } catch (error) {
             console.error('pushToGoogleSheets error:', error);
+            this.updateGoogleSyncStatus('error', `✕ Google Sheet 完整上傳失敗：${error.message || '請稍後重試'}`);
             if (!silent) this.showToast(`上傳失敗：${error.message || '請檢查網路或 CORS 設定'}`, 'error');
             throw error;
         }
