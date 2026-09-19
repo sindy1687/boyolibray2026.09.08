@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>留言板 - 博幼圖書館</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f7f8fa;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #4f5ce6;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            margin-bottom: 24px;
+        }
+        .actions {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4f5ce6 0%, #4b4dd5 100%);
+            color: #fff;
+        }
+        .status {
+            text-align: center;
+            padding: 40px 20px;
+            color: #718096;
+        }
+        .error {
+            color: #e53e3e;
+            background: #fff5f5;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .feedback-list {
+            display: grid;
+            gap: 16px;
+        }
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .card-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #2d3748;
+        }
+        .card-time {
+            font-size: 0.85rem;
+            color: #a0aec0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .badge-學生 { background: #eafaf1; color: #15803d; }
+        .badge-書籍推薦 { background: #fff3d8; color: #a16207; }
+        .badge-使用問題 { background: #fee; color: #c53030; }
+        .badge-default { background: #edf2f7; color: #4a5568; }
+        .card-meta {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .card-message {
+            color: #2d3748;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        .card-notes {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #e2e8f0;
+            font-size: 0.9rem;
+            color: #718096;
+        }
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #a0aec0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-comments"></i> 留言板</h1>
+        <p class="subtitle">這裡顯示所有透過「聯絡館員」表單送出的留言</p>
+        <div class="actions">
+            <a href="index.html" class="btn btn-primary"><i class="fas fa-arrow-left"></i> 返回圖書館</a>
+        </div>
+        <div id="status" class="status"><i class="fas fa-spinner fa-spin"></i> 載入中...</div>
+        <div id="feedback-list" class="feedback-list"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxXNBQd5mKO4b8yXr5gcJhXPXoekQnDmbGPcPuGLXqFbe4Mx72DcCxyoLvs36WwrWXu/exec';
+
+        async function loadFeedback() {
+            const statusEl = document.getElementById('status');
+            const listEl = document.getElementById('feedback-list');
+            try {
+                const payload = JSON.stringify({ action: 'getFeedback' });
+                const url = `${API_URL}?payload=${encodeURIComponent(payload)}`;
+                const resp = await fetch(url, { method: 'GET', cache: 'no-store' });
+                const text = await resp.text();
+                const result = JSON.parse(text);
+
+                if (!result.ok) {
+                    throw new Error(result.error || 'API 回傳錯誤');
+                }
+
+                const feedback = Array.isArray(result.data) ? result.data : [];
+                statusEl.style.display = 'none';
+
+                if (feedback.length === 0) {
+                    listEl.innerHTML = '<div class="empty"><i class="fas fa-inbox"></i><br>目前沒有留言</div>';
+                    return;
+                }
+
+                listEl.innerHTML = feedback.map(item => renderCard(item)).join('');
+            } catch (err) {
+                statusEl.style.display = 'none';
+                listEl.innerHTML = `<div class="error"><i class="fas fa-exclamation-triangle"></i> 載入失敗：${escapeHtml(err.message)}<br><small>請確認 Apps Script 已部署並有「Form_Responses」工作表</small></div>`;
+                console.error(err);
+            }
+        }
+
+        function renderCard(item) {
+            const type = escapeHtml(item.type || item['留言類型'] || '其他');
+            const knownTypes = ['學生', '書籍推薦', '使用問題'];
+            const badgeClass = knownTypes.includes(type) ? `badge-${type}` : 'badge-default';
+            const message = escapeHtml(item.message || item['留言內容'] || '').replace(/\r\n|\n/g, '<br>');
+            const notes = item.notes || item['備註'] || '';
+            const name = escapeHtml(item.name || item['姓名'] || '匿名');
+            const email = escapeHtml(item.email || item['電子郵件'] || '');
+            const phone = escapeHtml(item.phone || item['電話'] || '');
+            const time = escapeHtml(item.timestamp || item['時間戳記'] || '');
+
+            let metaParts = [];
+            if (email) metaParts.push(`<span><i class="fas fa-envelope"></i> ${email}</span>`);
+            if (phone) metaParts.push(`<span><i class="fas fa-phone"></i> ${phone}</span>`);
+
+            const notesHtml = notes
+                ? `<div class="card-notes"><strong>備註：</strong>${escapeHtml(String(notes))}</div>`
+                : '';
+
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-name"><i class="fas fa-user"></i> ${name}</div>
+                        <div class="card-time"><i class="fas fa-clock"></i> ${time}</div>
+                    </div>
+                    <span class="badge ${badgeClass}">${type}</span>
+                    <div class="card-meta">${metaParts.join('')}</div>
+                    <div class="card-message">${message}</div>
+                    ${notesHtml}
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        loadFeedback();
+    </script>
+</body>
+</html>

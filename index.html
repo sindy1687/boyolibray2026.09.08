@@ -104,43 +104,399 @@
         }
 
         /* 設定標籤頁樣式 */
+        #settings-modal .modal-content {
+            width: min(92vw, 1460px);
+            max-width: 1460px;
+            padding: 28px 26px 22px;
+            border-radius: 28px;
+            background: linear-gradient(180deg, #f2f1f8 0%, #f5f3fb 100%);
+            box-shadow: 0 25px 65px rgba(79, 57, 127, 0.18);
+            border: 1px solid rgba(127, 120, 180, 0.12);
+        }
+
+        #settings-modal .close {
+            position: absolute;
+            top: 18px;
+            right: 20px;
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            color: #6b7280;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.45);
+        }
+
+        #settings-modal h2 {
+            margin: 0 0 26px;
+            font-size: 1.65rem;
+            color: #374151;
+            letter-spacing: 0.02em;
+        }
+
         .settings-tabs {
-            display: flex;
-            border-bottom: 2px solid #e2e8f0;
-            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 16px;
+            margin: 0 auto 22px;
+            max-width: 100%;
         }
 
         .tab-btn {
-            background: none;
+            background: linear-gradient(180deg, #4f5ce6 0%, #4b4dd5 100%);
             border: none;
-            padding: 12px 20px;
+            border-radius: 18px;
+            min-height: 90px;
+            padding: 14px 16px;
             cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-            color: #718096;
-            font-weight: 500;
+            transition: all 0.22s ease;
+            color: #ffffff;
+            font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            gap: 10px;
+            text-align: center;
+            box-shadow: 0 10px 18px rgba(79, 92, 230, 0.2);
+        }
+
+        .tab-btn:nth-child(1) { background: linear-gradient(180deg, #5a4ae0 0%, #4038c2 100%); }
+        .tab-btn:nth-child(2) { background: linear-gradient(180deg, #2495d8 0%, #1f7fbd 100%); }
+        .tab-btn:nth-child(3) { background: linear-gradient(180deg, #1aaa73 0%, #1b8d62 100%); }
+        .tab-btn:nth-child(4) { background: linear-gradient(180deg, #2aa9ea 0%, #1d8fca 100%); }
+        .tab-btn:nth-child(5) { background: linear-gradient(180deg, #5f5ce4 0%, #4d3fb4 100%); }
+
+        .tab-btn i {
+            font-size: 1.7rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            opacity: 0.98;
+        }
+
+        .tab-btn .tab-text {
+            display: block;
+            font-size: 1.05rem;
+            line-height: 1.35;
+            white-space: pre-line;
+            font-weight: 700;
+            letter-spacing: 0.01em;
         }
 
         .tab-btn:hover {
-            color: #4a5568;
-            background: #f7fafc;
+            transform: translateY(-2px);
+            filter: brightness(1.04);
+            box-shadow: 0 16px 26px rgba(79, 92, 230, 0.22);
         }
 
         .tab-btn.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-            background: #f7fafc;
+            border: 2px solid rgba(255,255,255,0.35);
+            box-shadow: 0 14px 24px rgba(32, 53, 122, 0.22);
+            transform: translateY(-1px);
         }
 
         .tab-content {
             display: none;
+            border-radius: 22px;
+            padding: 6px 2px 0;
         }
 
         .tab-content.active {
             display: block;
+            background: rgba(255,255,255,0.18);
+        }
+
+        .user-list-management {
+            max-height: 540px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        #settings-modal .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        #settings-modal .section-header h3 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #2f3746;
+            font-size: 1.2rem;
+        }
+
+        #settings-modal .search-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0 0 18px;
+        }
+
+        #settings-modal .search-section input {
+            flex: 1;
+            min-height: 54px;
+            padding: 0 18px;
+            border-radius: 16px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: rgba(255,255,255,0.8);
+            font-size: 1.05rem;
+            color: #2d3748;
+            box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04);
+        }
+
+        #settings-modal .search-section button,
+        #settings-modal .btn {
+            border-radius: 14px;
+            min-height: 54px;
+            padding: 0 22px;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        #settings-modal .btn-secondary {
+            background: #edf2f8;
+            color: #2d3748;
+            border: 1px solid #dfe8f5;
+            box-shadow: none;
+        }
+
+        #settings-modal .user-list-wrap {
+            display: grid;
+            gap: 12px;
+        }
+
+        #settings-modal .user-list-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 18px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #f3f8ff 0%, #eef5fb 100%);
+            border: 1px solid #dfeaf8;
+            margin-bottom: 8px;
+        }
+
+        #settings-modal .user-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 18px;
+            border: 1px solid #dfe7f2;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.82);
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
+        }
+
+        #settings-modal .user-list-days {
+            background: linear-gradient(180deg, #ebf3ff 0%, #e3effd 100%);
+            color: #3d5a90;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-weight: 700;
+        }
+
+        #settings-modal .user-list-role {
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        #settings-modal .user-list-name {
+            font-size: 1.08rem;
+            font-weight: 800;
+            color: #172033;
+        }
+
+        #settings-modal .user-list-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 18px;
+            color: #586780;
+            font-size: 0.86rem;
+        }
+
+        #settings-modal .user-list-date {
+            color: #64748b;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        #settings-modal .btn-primary {
+            background: linear-gradient(135deg, #2ec58b 0%, #22a56f 100%);
+            color: #fff;
+        }
+
+        #settings-modal .btn-secondary:hover,
+        #settings-modal .btn-primary:hover {
+            transform: translateY(-1px);
+        }
+
+        #settings-modal .form-group {
+            margin-bottom: 18px;
+        }
+
+        #settings-modal .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #3b4a61;
+        }
+
+        #settings-modal .form-group input,
+        #settings-modal .form-group select,
+        #settings-modal .form-group textarea {
+            width: 100%;
+            border: 1px solid #dfe8f2;
+            border-radius: 12px;
+            padding: 12px 14px;
+            background: rgba(255,255,255,0.8);
+            color: #1f2937;
+        }
+
+        #settings-modal .form-group input:focus,
+        #settings-modal .form-group select:focus,
+        #settings-modal .form-group textarea:focus {
+            outline: none;
+            border-color: #7aa8e8;
+            box-shadow: 0 0 0 3px rgba(122, 168, 232, 0.12);
+        }
+
+        #settings-modal .form-help {
+            display: inline-block;
+            margin-top: 8px;
+            color: #64748b;
+            font-size: 0.82rem;
+        }
+
+        .user-list-management {
+            max-height: 540px;
+            overflow-y: auto;
+        }
+
+        .user-list-wrap {
+            display: grid;
+            gap: 12px;
+        }
+
+        .user-list-summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 18px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #f5f8ff 0%, #eef6ff 100%);
+            border: 1px solid #dfe9f9;
+            margin-bottom: 12px;
+        }
+
+        .user-list-summary strong {
+            font-size: 1.04rem;
+            color: #2d3748;
+        }
+
+        .user-list-summary span {
+            color: #5d6d82;
+            font-weight: 600;
+        }
+
+        .user-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 16px;
+            border: 1px solid #dfe7f2;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
+        }
+
+        .user-list-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-list-name-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .user-list-name {
+            font-size: 1.08rem;
+            font-weight: 800;
+            color: #1f2937;
+        }
+
+        .user-list-role {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .user-list-role.role-admin {
+            background: #fff3d8;
+            color: #a16207;
+        }
+
+        .user-list-role.role-subadmin {
+            background: #e8f3ff;
+            color: #1d4ed8;
+        }
+
+        .user-list-role.role-reader {
+            background: #eafaf1;
+            color: #15803d;
+        }
+
+        .user-list-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            color: #475569;
+            font-size: 0.88rem;
+        }
+
+        .user-list-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .user-list-side {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            min-width: 160px;
+        }
+
+        .user-list-days {
+            color: #2563eb;
+            font-weight: 800;
+            font-size: 1rem;
+        }
+
+        .user-list-date {
+            color: #64748b;
+            font-size: 0.82rem;
+            white-space: nowrap;
         }
 
         /* 使用者借閱管理樣式 */
@@ -168,15 +524,25 @@
 
         .search-section {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 20px;
+            align-items: center;
         }
 
         .search-section input {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #e2e8f0;
-            border-radius: 6px;
+            padding: 14px 16px;
+            border: 2px solid #dfe7f2;
+            border-radius: 12px;
+            background: #fff;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .search-section input:focus {
+            outline: none;
+            border-color: #8ca9de;
+            box-shadow: 0 0 0 3px rgba(140, 169, 222, 0.12);
         }
 
         .user-loan-item {
@@ -576,6 +942,88 @@
         }
 
     </style>
+
+    <style>
+        /* 留言板模態框樣式 */
+        #feedback-cloud-content {
+            max-height: 70vh;
+            overflow-y: auto;
+            border-radius: 12px;
+            padding: 6px;
+        }
+        .feedback-status,
+        .feedback-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #718096;
+        }
+        .feedback-error {
+            color: #e53e3e;
+            background: #fff5f5;
+            padding: 16px;
+            border-radius: 12px;
+            margin: 10px;
+        }
+        .feedback-list {
+            display: grid;
+            gap: 16px;
+        }
+        .feedback-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .feedback-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .feedback-card-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: #2d3748;
+        }
+        .feedback-card-time {
+            font-size: 0.85rem;
+            color: #a0aec0;
+        }
+        .feedback-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .feedback-badge-學生 { background: #eafaf1; color: #15803d; }
+        .feedback-badge-書籍推薦 { background: #fff3d8; color: #a16207; }
+        .feedback-badge-使用問題 { background: #fee; color: #c53030; }
+        .feedback-badge-default { background: #edf2f7; color: #4a5568; }
+        .feedback-card-meta {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .feedback-card-message {
+            color: #2d3748;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        .feedback-card-notes {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #e2e8f0;
+            font-size: 0.9rem;
+            color: #718096;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -590,48 +1038,62 @@
         <!-- 控制面板 -->
         <div class="control-panel">
             <div class="admin-section">
+                <!-- 檢視 -->
                 <button id="boyou-books-btn" class="btn btn-primary">
                     <i class="fas fa-book-reader"></i> 博幼藏書
                 </button>
-                <button id="location-map-btn" class="btn btn-info">
+                <button id="location-map-btn" class="btn btn-primary">
                     <i class="fas fa-map"></i> 位置圖
                 </button>
-                <button id="staff-approval-btn" class="btn btn-warning" style="display: none;">
-                    <i class="fas fa-user-check"></i> 身分審核
+                <button id="contact-librarian-btn" class="btn btn-primary">
+                    <i class="fas fa-comment-dots"></i> 聯絡館員
                 </button>
-                <button id="borrowers-list-btn" class="btn btn-warning" style="display: none;">
-                    <i class="fas fa-users"></i> 借閱者清單
+                <!-- 館藏資料管理 -->
+                <button id="add-book-btn" class="btn btn-info">
+                    <i class="fas fa-plus"></i> 新增館藏
                 </button>
-                <button id="borrowers-sync-btn" class="btn btn-success" style="display: none;">
-                    <i class="fas fa-cloud-upload-alt"></i> 借閱者上傳
+                <button id="fetch-all-covers-btn" class="btn btn-info">
+                    <i class="fas fa-images"></i> 一鍵搜尋封面
                 </button>
-                <button id="delete-identity-btn" class="btn btn-danger" style="display: none;">
-                    <i class="fas fa-user-times"></i> 刪除身分
+                <button id="refresh-booklist-btn" class="btn btn-info">
+                    <i class="fas fa-sync-alt"></i> 重新整理書單
                 </button>
-                <button id="settings-btn" class="btn btn-info">
-                    <i class="fas fa-cog"></i> 系統設定
+                <button id="reload-csv-btn" class="btn btn-info">
+                    <i class="fas fa-sync"></i> 重新載入資料
                 </button>
+                <button id="toggle-auto-update-btn" class="btn btn-success">
+                    <i class="fas fa-sync-alt"></i> 自動更新
+                </button>
+                <!-- 雲端同步 / 匯入 -->
                 <button id="google-sync-btn" class="btn btn-success">
                     <i class="fas fa-cloud-upload-alt"></i> Google Sheets 同步
                 </button>
-                <button id="google-load-btn" class="btn btn-info">
+                <button id="google-load-btn" class="btn btn-success">
                     <i class="fas fa-cloud-download-alt"></i> 從 Google Sheets 載入
-                </button>
-                <button id="refresh-booklist-btn" class="btn btn-primary">
-                    <i class="fas fa-sync-alt"></i> 重新整理書單
                 </button>
                 <button id="import-btn" class="btn btn-success">
                     <i class="fas fa-file-import"></i> 匯入 Excel 書單
                 </button>
                 <input type="file" id="file-input" accept=".xlsx,.xls,.csv" style="display: none;">
-                <button id="add-book-btn" class="btn btn-info">
-                    <i class="fas fa-plus"></i> 新增館藏
+                <button id="borrowers-sync-btn" class="btn btn-success" style="display: none;">
+                    <i class="fas fa-cloud-upload-alt"></i> 借閱者上傳
+                </button>
+                <!-- 系統 / 檢查工具 -->
+                <button id="settings-btn" class="btn btn-secondary">
+                    <i class="fas fa-cog"></i> 系統設定
                 </button>
                 <button id="show-missing-ids-btn" class="btn btn-secondary" style="display: none;">
                     <i class="fas fa-search"></i> 查看缺失書碼
                 </button>
                 <button id="check-title-format-btn" class="btn btn-secondary" style="display: none;">
                     <i class="fas fa-spell-check"></i> 檢查書名格式
+                </button>
+                <!-- 人員管理 -->
+                <button id="staff-approval-btn" class="btn btn-warning" style="display: none;">
+                    <i class="fas fa-user-check"></i> 身分審核
+                </button>
+                <button id="borrowers-list-btn" class="btn btn-warning" style="display: none;">
+                    <i class="fas fa-users"></i> 借閱者清單
                 </button>
                 <div class="admin-search-tools">
                     <div class="toolbar-search">
@@ -661,16 +1123,11 @@
                         </select>
                     </div>
                 </div>
-                <button id="fetch-all-covers-btn" class="btn btn-warning">
-                    <i class="fas fa-images"></i> 一鍵搜尋封面
+                <!-- 危險操作 -->
+                <button id="delete-identity-btn" class="btn btn-danger" style="display: none;">
+                    <i class="fas fa-user-times"></i> 刪除身分
                 </button>
-                <button id="reload-csv-btn" class="btn btn-secondary">
-                    <i class="fas fa-sync"></i> 重新載入資料
-                </button>
-                <button id="toggle-auto-update-btn" class="btn btn-success">
-                    <i class="fas fa-sync-alt"></i> 自動更新
-                </button>
-                <button id="reset-btn" class="btn btn-warning">
+                <button id="reset-btn" class="btn btn-danger">
                     <i class="fas fa-trash"></i> 重置資料
                 </button>
             </div>
@@ -792,16 +1249,39 @@
                     </button>
                 </div>
 
-                <!-- 快速借閱（移至借閱清單區塊） -->
-                <div class="quick-borrow-row quick-compact">
-                    <span class="quick-borrow-label"><i class="fas fa-barcode"></i> 快速借閱 / 批量借閱</span>
-                    <div class="quick-borrow-input">
-                        <textarea id="borrow-by-code-input" rows="3" placeholder="輸入一個或多個書碼，例如：&#10;C0001 C0002&#10;B0625, A0101"></textarea>
-                        <button id="borrow-by-code-btn" class="btn btn-warning">
-                            <i class="fas fa-book-reader"></i> 批量借閱
-                        </button>
+                <div class="quick-action-tabs">
+                    <button type="button" class="quick-action-tab active" data-tab="borrow">
+                        <i class="fas fa-book-reader"></i> 批量借閱
+                    </button>
+                    <button type="button" class="quick-action-tab" data-tab="return">
+                        <i class="fas fa-undo"></i> 批量歸還
+                    </button>
+                </div>
+
+                <div id="quick-borrow-panel" class="quick-action-panel active">
+                    <div class="quick-borrow-row quick-compact quick-action-card quick-action-card-borrow">
+                        <span class="quick-borrow-label"><i class="fas fa-barcode"></i> 批量借閱</span>
+                        <div class="quick-borrow-input">
+                            <textarea id="borrow-by-code-input" rows="3" placeholder="輸入一個或多個書碼，例如：&#10;C0001 C0002&#10;B0625, A0101"></textarea>
+                            <button id="borrow-by-code-btn" class="btn btn-warning">
+                                <i class="fas fa-book-reader"></i> 批量借閱
+                            </button>
+                        </div>
+                        <small class="quick-borrow-help">可用空格、逗號或換行分隔多個書碼。</small>
                     </div>
-                    <small class="quick-borrow-help">可用空格、逗號或換行分隔多個書碼。</small>
+                </div>
+
+                <div id="quick-return-panel" class="quick-action-panel">
+                    <div class="quick-borrow-row quick-compact quick-action-card quick-action-card-return">
+                        <span class="quick-borrow-label"><i class="fas fa-undo"></i> 批量歸還</span>
+                        <div class="quick-borrow-input">
+                            <textarea id="return-by-code-input" rows="3" placeholder="輸入要歸還的書碼，例如：&#10;C0001 C0002&#10;B0625, A0101"></textarea>
+                            <button id="return-by-code-btn" class="btn btn-secondary">
+                                <i class="fas fa-undo"></i> 批量歸還
+                            </button>
+                        </div>
+                        <small class="quick-borrow-help">只會處理尚未歸還且屬於目前登入者的借閱紀錄。</small>
+                    </div>
                 </div>
                 
                 <div class="borrowed-filters">
@@ -884,6 +1364,38 @@
             <h2><i class="fas fa-map-marked-alt"></i> 博幼館藏位置圖</h2>
             <div style="text-align:center">
                 <img id="location-map-img" src="BOYO館藏.jpg" alt="博幼館藏位置圖" style="max-width:100%;height:auto;border-radius:8px;" />
+            </div>
+        </div>
+    </div>
+
+    <!-- 聯絡館員模態框 -->
+    <div id="contact-librarian-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px; padding: 20px; max-height: 90vh; overflow-y: auto;">
+            <span class="close">&times;</span>
+            <h2><i class="fas fa-comment-dots"></i> 聯絡館員</h2>
+            <p style="color: #666; margin-bottom: 15px;">有任何書籍推薦、使用問題或建議，歡迎留言給館員。</p>
+            <div style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                <iframe id="contact-librarian-iframe"
+                        src="https://docs.google.com/forms/d/e/1FAIpQLSdZg78ZG8Q3tPqJJ-p3xPXIqj0THUzruJBvC2TC9a01xPiicg/viewform?embedded=true"
+                        width="100%" style="height: 50vh; min-height: 380px;" frameborder="0" marginheight="0" marginwidth="0">
+                    載入中…
+                </iframe>
+            </div>
+            <p style="text-align: center; margin-top: 15px;">
+                <a href="#" onclick="library.showFeedbackCloud(); return false;" style="color: #4f5ce6; font-weight: 600;">
+                    <i class="fas fa-comments"></i> 查看所有留言
+                </a>
+            </p>
+        </div>
+    </div>
+
+    <!-- 留言板模態框 -->
+    <div id="feedback-cloud-modal" class="modal">
+        <div class="modal-content" style="max-width: 900px; padding: 20px;">
+            <span class="close">&times;</span>
+            <h2><i class="fas fa-comments"></i> 留言板</h2>
+            <div id="feedback-cloud-content" class="feedback-cloud-content">
+                <div class="feedback-status"><i class="fas fa-spinner fa-spin"></i> 載入中...</div>
             </div>
         </div>
     </div>
@@ -1148,16 +1660,27 @@
             <!-- 設定標籤頁 -->
             <div class="settings-tabs">
                 <button class="tab-btn active" onclick="library.switchSettingsTab('basic')">
-                    <i class="fas fa-cog"></i> 基本設定
+                    <i class="fas fa-gear"></i>
+                    <span class="tab-text">基本設定</span>
                 </button>
                 <button class="tab-btn" onclick="library.switchSettingsTab('user-loan')">
-                    <i class="fas fa-user-clock"></i> 使用者借閱時間
+                    <i class="fas fa-user-clock"></i>
+                    <span class="tab-text">使用者
+借閱時間</span>
+                </button>
+                <button class="tab-btn" onclick="library.switchSettingsTab('user-list')">
+                    <i class="fas fa-users"></i>
+                    <span class="tab-text">使用者
+清單</span>
                 </button>
                 <button class="tab-btn" onclick="library.switchSettingsTab('sub-admin')">
-                    <i class="fas fa-user-shield"></i> 副管理者管理
+                    <i class="fas fa-user-shield"></i>
+                    <span class="tab-text">副管理者
+管理</span>
                 </button>
-                <button class="tab-btn" onclick="library.switchSettingsTab('auto-fill')">
-                    <i class="fas fa-magic"></i> 資料補齊
+                <button class="tab-btn" onclick="library.switchSettingsTab('auto-fill')" style="display:none;">
+                    <i class="fas fa-magic"></i>
+                    <span class="tab-text">資料補齊</span>
                 </button>
             </div>
 
@@ -1215,6 +1738,29 @@
 
                     <div id="user-loan-list">
                         <!-- 使用者借閱設定列表將在這裡動態生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 使用者清單標籤頁 -->
+            <div id="user-list-settings" class="tab-content">
+                <div class="user-list-management">
+                    <div class="section-header">
+                        <h3><i class="fas fa-users"></i> 借閱者清單</h3>
+                        <button class="btn btn-secondary" onclick="library.refreshUserList()">
+                            <i class="fas fa-rotate"></i> 重新整理
+                        </button>
+                    </div>
+
+                    <div class="search-section">
+                        <input type="text" id="user-list-search" placeholder="搜尋借閱者名稱...">
+                        <button class="btn btn-secondary" onclick="library.searchUserList()">
+                            <i class="fas fa-search"></i> 搜尋
+                        </button>
+                    </div>
+
+                    <div id="user-list-container">
+                        <!-- 使用者清單將在這裡動態生成 -->
                     </div>
                 </div>
             </div>

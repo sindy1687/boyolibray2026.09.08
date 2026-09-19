@@ -642,6 +642,90 @@ class LibrarySystem {
         }
     }
 
+    // 直接輸入書碼批量歸還
+    async returnByBookCode() {
+        const input = document.getElementById('return-by-code-input');
+        const raw = (input?.value || '').trim();
+
+        if (!this.currentUser) {
+            this.showToast('請先登入', 'error');
+            return;
+        }
+
+        if (!raw) {
+            this.showToast('請輸入要歸還的書碼，可一次輸入多本', 'error');
+            return;
+        }
+
+        const codes = [...new Set(raw
+            .toUpperCase()
+            .split(/[\s,，、;；]+/)
+            .map(code => code.trim())
+            .filter(Boolean)
+        )];
+
+        if (codes.length === 0) {
+            this.showToast('請輸入有效書碼', 'error');
+            return;
+        }
+
+        const results = [];
+        let totalReturned = 0;
+        for (const code of codes) {
+            const result = this.returnExactBookCode(code);
+            results.push(result);
+            if (result.ok) {
+                totalReturned += Number(result.count || 1);
+            }
+        }
+
+        const failed = results.filter(result => !result.ok);
+
+        if (totalReturned > 0) {
+            this.saveData();
+            this.triggerSyncForAction('return');
+            this.renderBooks();
+            this.renderBorrowedBooks();
+            this.updateStats();
+        }
+
+        if (input && failed.length === 0) input.value = '';
+
+        if (failed.length > 0) {
+            this.showToast(`完成 ${totalReturned} 本，失敗 ${failed.length} 本：${failed.slice(0, 3).map(x => `${x.code} ${x.message}`).join('；')}`, totalReturned > 0 ? 'warning' : 'error');
+        } else {
+            this.showToast(`批量歸還成功：${totalReturned} 本`, 'success');
+        }
+    }
+
+    returnExactBookCode(code) {
+        if (!this.bookIdPattern.test(code)) {
+            return { ok: false, code, count: 0, message: '格式錯誤' };
+        }
+
+        const isAdmin = this.currentUser && this.currentUser.username === this.adminUsername;
+        const matchingRecords = this.borrowedBooks.filter(record => {
+            const sameBook = String(record.bookId || '').toUpperCase() === code;
+            const isActive = !record.returnedAt;
+            const isOwnedByUser = isAdmin || record.userId === this.currentUser.username;
+            return sameBook && isActive && isOwnedByUser;
+        });
+
+        if (matchingRecords.length === 0) {
+            return { ok: false, code, count: 0, message: '找不到未歸還紀錄' };
+        }
+
+        for (const record of matchingRecords) {
+            record.returnedAt = new Date().toISOString();
+            const book = this.books.find(b => b.id === record.bookId);
+            if (book) {
+                book.availableCopies = Math.max(0, (Number(book.availableCopies) || 0) + 1);
+            }
+        }
+
+        return { ok: true, code, count: matchingRecords.length, message: '成功' };
+    }
+
     borrowExactBookCode(code) {
         if (!this.bookIdPattern.test(code)) {
             return { ok: false, code, message: '格式錯誤' };
@@ -1047,7 +1131,7 @@ class LibrarySystem {
         const payloadText = JSON.stringify(payload);
         const shouldPost = preferMethod === 'POST' || payloadText.length > 1800;
         const method = shouldPost ? 'POST' : 'GET';
-        const timeoutMs = isMobile ? this.googleSheetTimeoutMs : 30000;
+        const timeoutMs = payload.action === 'getFeedback' ? 45000 : (isMobile ? this.googleSheetTimeoutMs : 30000);
 
         // ── GET 方式（Simple Request，無 CORS preflight） ──
         if (method === 'GET') {
@@ -1070,7 +1154,7 @@ class LibrarySystem {
                 }
             } catch (err) {
                 // GET 失敗時嘗試 POST fallback（非手機）
-                if (!isMobile) {
+                if (!isMobile && payload.action !== 'getFeedback') {
                     console.warn('[callGoogleApi] GET 失敗，改用 POST:', err.message);
                     return await this._callGoogleApiPost(baseUrl, payload);
                 }
@@ -1395,7 +1479,22 @@ class LibrarySystem {
             }
         }
 
-        // 直接輸入書碼借閱
+        // 批量借閱 / 批量歸還分頁切換
+        const quickActionTabs = document.querySelectorAll('.quick-action-tab');
+        quickActionTabs.forEach((tab) => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab;
+                document.querySelectorAll('.quick-action-tab').forEach(btn => {
+                    btn.classList.toggle('active', btn === tab);
+                    btn.setAttribute('aria-selected', String(btn === tab));
+                });
+                document.querySelectorAll('.quick-action-panel').forEach(panel => {
+                    panel.classList.toggle('active', panel.id === (target === 'borrow' ? 'quick-borrow-panel' : 'quick-return-panel'));
+                });
+            });
+        });
+
+        // 直接輸入書碼借閱 / 歸還
         const borrowByCodeInput = document.getElementById('borrow-by-code-input');
         const borrowByCodeBtn = document.getElementById('borrow-by-code-btn');
         if (borrowByCodeBtn) {
@@ -1406,6 +1505,20 @@ class LibrarySystem {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     this.borrowByBookCode();
+                }
+            });
+        }
+
+        const returnByCodeInput = document.getElementById('return-by-code-input');
+        const returnByCodeBtn = document.getElementById('return-by-code-btn');
+        if (returnByCodeBtn) {
+            returnByCodeBtn.addEventListener('click', () => this.returnByBookCode());
+        }
+        if (returnByCodeInput) {
+            returnByCodeInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.returnByBookCode();
                 }
             });
         }
@@ -1429,6 +1542,7 @@ class LibrarySystem {
         document.getElementById('toggle-auto-update-btn').addEventListener('click', () => this.toggleAutoUpdate());
         document.getElementById('reset-btn').addEventListener('click', () => this.resetData());
         document.getElementById('location-map-btn').addEventListener('click', () => this.showLocationMap());
+        document.getElementById('contact-librarian-btn').addEventListener('click', () => this.showContactLibrarian());
 
         // 登入/登出
         document.getElementById('login-btn').addEventListener('click', () => this.showLoginModal());
@@ -1942,6 +2056,152 @@ class LibrarySystem {
         }
     }
 
+    // 顯示聯絡館員表單
+    showContactLibrarian() {
+        const modal = document.getElementById('contact-librarian-modal');
+        if (modal) {
+            modal.style.display = 'block';
+        }
+    }
+
+    // 顯示留言板模態框
+    showFeedbackCloud() {
+        const modal = document.getElementById('feedback-cloud-modal');
+        if (modal) {
+            modal.style.display = 'block';
+            this.loadFeedbackCloud();
+        }
+    }
+
+    // 載入並顯示留言板內容
+    async loadFeedbackCloud() {
+        const container = document.getElementById('feedback-cloud-content');
+        if (!container) return;
+
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxXNBQd5mKO4b8yXr5gcJhXPXoekQnDmbGPcPuGLXqFbe4Mx72DcCxyoLvs36WwrWXu/exec';
+        container.innerHTML = '<div class="feedback-status"><i class="fas fa-spinner fa-spin"></i> 載入中...</div>';
+
+        try {
+            const result = await this.callGoogleApi(API_URL, { action: 'getFeedback' }, 'GET');
+            if (!result || result.ok !== true) {
+                throw new Error(result?.error || '留言讀取失敗');
+            }
+            if (!Array.isArray(result.data)) {
+                throw new Error('留言資料格式不正確');
+            }
+            const feedback = result.data.map(item => ({ ...item, reply: item.reply || item['管理員回復'] || item['管理員回覆'] || '' }));
+            this.feedbackItems = feedback;
+
+            if (feedback.length === 0) {
+                container.innerHTML = '<div class="feedback-empty"><i class="fas fa-inbox"></i><br>目前沒有留言</div>';
+                return;
+            }
+
+            container.innerHTML = `<div class="feedback-list">${feedback.map((item, index) => this.renderFeedbackCard(item, index)).join('')}</div>`;
+            container.querySelectorAll('.feedback-reply-form').forEach(form => {
+                form.addEventListener('submit', event => this.submitFeedbackReply(event, API_URL));
+            });
+        } catch (err) {
+            container.innerHTML = `<div class="feedback-error"><i class="fas fa-exclamation-triangle"></i> 載入失敗：${this.escapeHtml(err.message)}<br><small>請稍後重新載入；逾時不代表沒有留言。</small><br><button type="button" class="btn btn-secondary feedback-retry">重新載入留言</button></div>`;
+            container.querySelector('.feedback-retry')?.addEventListener('click', () => this.loadFeedbackCloud());
+            console.error(err);
+        }
+    }
+
+    // 渲染單則留言卡片
+    async submitFeedbackReply(event, apiUrl) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const status = form.querySelector('[role="status"]');
+        if (!this.isAdminUser() || this.currentUser?.username !== 'sindy16872000') {
+            status.textContent = '只有 sindy16872000 可以回復留言';
+            return;
+        }
+        const item = this.feedbackItems?.[Number(form.dataset.index)];
+        if (!item?.id) {
+            status.textContent = '留言功能尚未更新，請更新 Google 雲端程式後重試';
+            return;
+        }
+        const button = form.querySelector('button[type="submit"]');
+        if (button.disabled) return;
+        const reply = form.elements.reply.value.trim();
+        if (!reply || reply.length > 2000) {
+            status.textContent = '請填寫 1 至 2000 字的回復';
+            return;
+        }
+        button.disabled = true;
+        status.textContent = '正在儲存回復…';
+        try {
+            const result = await this.callGoogleApi(apiUrl, {
+                action: 'replyFeedback',
+                payload: { id: item.id, reply, previousReply: item.reply || '', username: this.currentUser.username }
+            }, 'POST');
+            if (!result?.ok) throw new Error(result?.error || '回復儲存失敗');
+            if (!result.data || typeof result.data.reply !== 'string') throw new Error('回復結果格式不正確，請重新開啟留言板確認');
+            Object.assign(item, result.data);
+            const card = form.closest('.feedback-card');
+            card.querySelector('.feedback-admin-reply').innerHTML = this.renderAdminReply(item);
+            card.querySelector('.feedback-admin-reply').hidden = false;
+            card.querySelector('.feedback-reply-editor summary').textContent = '編輯回復';
+            status.textContent = '已上傳雲端，所有人重新開啟留言板即可看到回復';
+        } catch (error) {
+            status.textContent = `${error.message}。若連線逾時，請重新開啟留言板確認是否已儲存。`;
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    renderAdminReply(item) {
+        return `<strong><i class="fas fa-reply"></i> 管理員回復</strong>
+            <div class="feedback-reply-text">${this.escapeHtml(item.reply || '')}</div>
+            <small>${this.escapeHtml(item.replyBy || '')} ${this.escapeHtml(item.replyAt || '')}</small>`;
+    }
+
+    renderFeedbackCard(item, index = 0) {
+        const type = this.escapeHtml(item.type || item['留言類型'] || '其他');
+        const knownTypes = ['學生', '書籍推薦', '使用問題'];
+        const badgeClass = knownTypes.includes(type) ? `feedback-badge-${type}` : 'feedback-badge-default';
+        const message = this.escapeHtml(item.message || item['留言內容'] || '').replace(/\r\n|\n/g, '<br>');
+        const notes = item.notes || item['備註'] || '';
+        const name = this.escapeHtml(item.name || item['名稱'] || item['姓名'] || '匿名');
+        const email = this.escapeHtml(item.email || item['電子郵件'] || '');
+        const phone = this.escapeHtml(item.phone || item['電話'] || '');
+        const time = this.escapeHtml(item.timestamp || item['時間戳記'] || '');
+
+        const metaParts = [];
+        if (email) metaParts.push(`<span><i class="fas fa-envelope"></i> ${email}</span>`);
+        if (phone) metaParts.push(`<span><i class="fas fa-phone"></i> ${phone}</span>`);
+
+        const notesHtml = notes
+            ? `<div class="feedback-card-notes"><strong>備註：</strong>${this.escapeHtml(String(notes))}</div>`
+            : '';
+
+        return `
+            <div class="feedback-card">
+                <div class="feedback-card-header">
+                    <div class="feedback-card-name"><i class="fas fa-user"></i> ${name}</div>
+                    <div class="feedback-card-time"><i class="fas fa-clock"></i> ${time}</div>
+                </div>
+                <span class="feedback-badge ${badgeClass}">${type}</span>
+                <div class="feedback-card-meta">${metaParts.join('')}</div>
+                <div class="feedback-card-message">${message}</div>
+                ${notesHtml}
+                <div class="feedback-admin-reply" ${item.reply ? '' : 'hidden'}>${this.renderAdminReply(item)}</div>
+                ${this.isAdminUser() && this.currentUser?.username === 'sindy16872000' ? (item.id ? `
+                    <details class="feedback-reply-editor">
+                        <summary>${item.reply ? '編輯回復' : '回復留言'}</summary>
+                        <form class="feedback-reply-form" data-index="${index}">
+                            <label>管理員回復
+                                <textarea name="reply" rows="3" maxlength="2000" required placeholder="輸入回復內容…">${this.escapeHtml(item.reply || '')}</textarea>
+                            </label>
+                            <button type="submit" class="btn btn-primary">儲存回復</button>
+                            <p role="status" aria-live="polite"></p>
+                        </form>
+                    </details>` : '<p class="feedback-reply-notice">回覆功能待管理員更新雲端程式後啟用。</p>') : ''}
+            </div>
+        `;
+    }
+
     // 載入資料
     loadData() {
         this.books = JSON.parse(localStorage.getItem('lib_books_v1') || '[]');
@@ -1977,11 +2237,14 @@ class LibrarySystem {
 
         localStorage.setItem('lib_settings_v1', JSON.stringify(this.settings));
 
-        // 去重：根據書籍 ID 移除重複項
+        // 去重：根據書籍 ID 移除重複項，避免同一書碼在列表中重複顯示
         const bookMap = new Map();
         this.books.forEach(book => {
-            if (book.id && !bookMap.has(book.id)) {
-                bookMap.set(book.id, book);
+            if (!book || !book.id) return;
+            const normalizedId = String(book.id).trim();
+            if (!normalizedId) return;
+            if (!bookMap.has(normalizedId)) {
+                bookMap.set(normalizedId, book);
             }
         });
         this.books = Array.from(bookMap.values());
@@ -2905,7 +3168,16 @@ class LibrarySystem {
             list.className = 'selection-modal-options';
 
             const safeOptions = Array.isArray(options) ? options : [];
+            const uniqueOptions = [];
+            const seenValues = new Set();
             safeOptions.forEach((opt) => {
+                const value = String(opt?.value ?? '').trim();
+                if (!value || seenValues.has(value)) return;
+                seenValues.add(value);
+                uniqueOptions.push(opt);
+            });
+
+            uniqueOptions.forEach((opt) => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'selection-modal-option';
@@ -3093,8 +3365,18 @@ class LibrarySystem {
 
     getBookStock(book) {
         const sourceItems = this.getBookSourceItems(book);
-        const ids = [...new Set(sourceItems.map(item => item.id).filter(Boolean))];
-        const total = sourceItems.reduce((sum, item) => sum + (Number(item.copies) || 1), 0) || 1;
+        const uniqueItems = [];
+        const seenIds = new Set();
+
+        sourceItems.forEach(item => {
+            const id = item?.id;
+            if (!id || seenIds.has(String(id).trim())) return;
+            seenIds.add(String(id).trim());
+            uniqueItems.push(item);
+        });
+
+        const ids = [...new Set(uniqueItems.map(item => item.id).filter(Boolean))];
+        const total = uniqueItems.reduce((sum, item) => sum + (Number(item.copies) || 1), 0) || 1;
         const borrowed = this.borrowedBooks.filter(record =>
             ids.includes(record.bookId) &&
             !record.returnedAt
@@ -4490,7 +4772,13 @@ class LibrarySystem {
 
         // 若同書名存在多筆（合併顯示/多個書碼），讓使用者選擇要借哪個書碼
         const normalizedTitle = this.normalizeTitle(clickedBook.title);
-        const sameTitleBooks = this.books.filter(b => this.normalizeTitle(b.title) === normalizedTitle);
+        const sameTitleBooks = Array.from(
+            new Map(
+                this.books
+                    .filter(b => this.normalizeTitle(b.title) === normalizedTitle)
+                    .map(b => [String(b.id).trim(), b])
+            ).values()
+        );
 
         let selectedBook = clickedBook;
         if (sameTitleBooks.length > 1) {
@@ -5233,12 +5521,13 @@ class LibrarySystem {
         
         books.forEach(book => {
             const normalizedTitle = this.normalizeTitle(book.title);
-            
+            const bookId = String(book.id || '').trim();
+
             if (!titleMap.has(normalizedTitle)) {
                 // 創建合併後的書籍對象
                 const mergedBook = {
                     ...book,
-                    bookIds: [book.id],
+                    bookIds: bookId ? [bookId] : [],
                     mergedBooks: [book],
                     totalCopies: book.copies || 1,
                     totalAvailableCopies: book.availableCopies || 0,
@@ -5248,33 +5537,41 @@ class LibrarySystem {
                     updatedAt: book.updatedAt || null
                 };
                 titleMap.set(normalizedTitle, mergedBook);
-            } else {
-                // 合併到現有的書籍
-                const existingBook = titleMap.get(normalizedTitle);
-                existingBook.bookIds.push(book.id);
-                existingBook.mergedBooks.push(book);
-                existingBook.totalCopies += (book.copies || 1);
-                existingBook.totalAvailableCopies += (book.availableCopies || 0);
+                return;
+            }
 
-                // 新書標記：只要其中一本是新書就標記；addedAt 取最新
-                if (book.isNew) existingBook.isNew = true;
-                const existingAddedAt = existingBook.addedAt || 0;
-                const nextAddedAt = book.addedAt || 0;
-                if (nextAddedAt > existingAddedAt) existingBook.addedAt = nextAddedAt;
-                const existingUpdatedAt = existingBook.updatedAt || 0;
-                const nextUpdatedAt = book.updatedAt || 0;
-                if (nextUpdatedAt > existingUpdatedAt) existingBook.updatedAt = nextUpdatedAt;
-                
-                // 更新主要資訊（使用第一本書的資訊）
-                if (!existingBook.author && book.author) {
-                    existingBook.author = book.author;
-                }
-                if (!existingBook.coverUrl && book.coverUrl) {
-                    existingBook.coverUrl = book.coverUrl;
-                }
-                if (!existingBook.year && book.year) {
-                    existingBook.year = book.year;
-                }
+            // 合併到現有的書籍
+            const existingBook = titleMap.get(normalizedTitle);
+            if (bookId && !existingBook.bookIds.includes(bookId)) {
+                existingBook.bookIds.push(bookId);
+            }
+            if (bookId && !existingBook.mergedBooks.some(item => String(item.id || '').trim() === bookId)) {
+                existingBook.mergedBooks.push(book);
+            }
+            if (!bookId && !existingBook.mergedBooks.includes(book)) {
+                existingBook.mergedBooks.push(book);
+            }
+            existingBook.totalCopies += (book.copies || 1);
+            existingBook.totalAvailableCopies += (book.availableCopies || 0);
+
+            // 新書標記：只要其中一本是新書就標記；addedAt 取最新
+            if (book.isNew) existingBook.isNew = true;
+            const existingAddedAt = existingBook.addedAt || 0;
+            const nextAddedAt = book.addedAt || 0;
+            if (nextAddedAt > existingAddedAt) existingBook.addedAt = nextAddedAt;
+            const existingUpdatedAt = existingBook.updatedAt || 0;
+            const nextUpdatedAt = book.updatedAt || 0;
+            if (nextUpdatedAt > existingUpdatedAt) existingBook.updatedAt = nextUpdatedAt;
+            
+            // 更新主要資訊（使用第一本書的資訊）
+            if (!existingBook.author && book.author) {
+                existingBook.author = book.author;
+            }
+            if (!existingBook.coverUrl && book.coverUrl) {
+                existingBook.coverUrl = book.coverUrl;
+            }
+            if (!existingBook.year && book.year) {
+                existingBook.year = book.year;
             }
         });
         
@@ -5594,8 +5891,18 @@ class LibrarySystem {
         const modal = document.createElement('div');
         modal.className = 'modal book-selection-modal';
         modal.style.display = 'block';
+
+        const uniqueBooks = [];
+        const seenBookIds = new Set();
+        (books || []).forEach(book => {
+            if (!book || !book.id) return;
+            const key = String(book.id).trim();
+            if (!key || seenBookIds.has(key)) return;
+            seenBookIds.add(key);
+            uniqueBooks.push(book);
+        });
         
-        const booksList = books.map(book => `
+        const booksList = uniqueBooks.map(book => `
             <div class="book-selection-item ${book.id === selectedBookId ? 'selected' : ''}" 
                  onclick="library.selectBookForEdit('${book.id}')">
                 <div class="book-selection-info">
@@ -6860,7 +7167,17 @@ class LibrarySystem {
         modal.className = 'modal';
         modal.style.display = 'block';
         
-        const booksList = books.map(book => {
+        const uniqueBooks = [];
+        const seenBookIds = new Set();
+        (books || []).forEach(book => {
+            if (!book || !book.id) return;
+            const key = String(book.id).trim();
+            if (!key || seenBookIds.has(key)) return;
+            seenBookIds.add(key);
+            uniqueBooks.push(book);
+        });
+
+        const booksList = uniqueBooks.map(book => {
             const borrowedCount = this.borrowedBooks.filter(b => b.bookId === book.id && !b.returnedAt).length;
             const canDelete = borrowedCount === 0;
             
@@ -7253,6 +7570,152 @@ class LibrarySystem {
         // 如果切換到副管理者標籤，渲染副管理者列表
         if (tabName === 'sub-admin') {
             this.renderSubAdminList();
+        }
+        if (tabName === 'user-list') {
+            this.renderUserList();
+        }
+    }
+
+    refreshUserList() {
+        this.renderUserList();
+        this.showToast('已更新使用者清單', 'success');
+    }
+
+    searchUserList() {
+        this.renderUserList();
+    }
+
+    getUserSummaryList() {
+        const userMap = new Map();
+
+        this.borrowedBooks.forEach(record => {
+            if (!record?.userId) return;
+            const username = String(record.userId).trim();
+            if (!username) return;
+
+            if (!userMap.has(username)) {
+                userMap.set(username, {
+                    username,
+                    totalBorrowed: 0,
+                    activeBorrowed: 0,
+                    returned: 0,
+                    overdue: 0,
+                    lastBorrowDate: null
+                });
+            }
+
+            const user = userMap.get(username);
+            user.totalBorrowed += 1;
+            if (!record.returnedAt) {
+                user.activeBorrowed += 1;
+                if (record.dueDate && new Date(record.dueDate) < new Date()) {
+                    user.overdue += 1;
+                }
+            } else {
+                user.returned += 1;
+            }
+
+            if (!user.lastBorrowDate || new Date(record.borrowDate || 0) > new Date(user.lastBorrowDate)) {
+                user.lastBorrowDate = record.borrowDate || null;
+            }
+        });
+
+        const userLoanSettingMap = new Map((this.settings.userLoanSettings || []).map(item => [String(item.username || '').trim(), item]));
+
+        const allUsernames = Array.from(new Set([
+            ...Array.from(userMap.keys()),
+            ...this.settings.subAdmins?.map(sa => String(sa.username || '').trim()).filter(Boolean) || [],
+            ...this.settings.userLoanSettings?.map(item => String(item.username || '').trim()).filter(Boolean) || [],
+            ...(this.users || []).map(user => String(user.username || '').trim()).filter(Boolean),
+            ...(this.currentUser ? [this.currentUser.username] : [])
+        ])).filter(Boolean).sort((a, b) => a.localeCompare(b, 'zh-Hant'));
+
+        return allUsernames.map(username => {
+            const summary = userMap.get(username) || {
+                username,
+                totalBorrowed: 0,
+                activeBorrowed: 0,
+                returned: 0,
+                overdue: 0,
+                lastBorrowDate: null
+            };
+
+            return {
+                ...summary,
+                role: username === this.adminUsername ? '主要管理者' : (this.settings.subAdmins?.some(sa => sa.username === username) ? '副管理者' : '讀者'),
+                customLoanDays: userLoanSettingMap.get(username)?.days || null,
+                lastBorrowLabel: summary.lastBorrowDate ? new Date(summary.lastBorrowDate).toLocaleDateString('zh-TW') : '無紀錄'
+            };
+        });
+    }
+
+    renderUserList() {
+        const container = document.getElementById('user-list-container');
+        if (!container) return;
+
+        const term = String(document.getElementById('user-list-search')?.value || '').trim().toLowerCase();
+        const users = this.getUserSummaryList();
+        const filtered = term ? users.filter(user => String(user.username || '').toLowerCase().includes(term)) : users;
+
+        if (!filtered.length) {
+            container.innerHTML = `
+                <div class="empty-state" style="padding: 18px;">
+                    <i class="fas fa-user-slash"></i>
+                    <h3>沒有符合的使用者</h3>
+                    <p>目前沒有此名稱的使用者資料</p>
+                </div>
+            `;
+            return;
+        }
+
+        const rows = filtered.map(user => `
+            <div class="user-list-item">
+                <div class="user-list-main">
+                    <div class="user-list-name-row">
+                        <span class="user-list-name">${this.escapeHtml(user.username)}</span>
+                        <span class="user-list-role ${user.role === '主要管理者' ? 'role-admin' : user.role === '副管理者' ? 'role-subadmin' : 'role-reader'}">${user.role}</span>
+                    </div>
+                    <div class="user-list-meta">
+                        <span><i class="fas fa-book"></i> 總借閱：${user.totalBorrowed}</span>
+                        <span><i class="fas fa-book-open"></i> 借閱中：${user.activeBorrowed}</span>
+                        <span><i class="fas fa-check"></i> 已歸還：${user.returned}</span>
+                        <span><i class="fas fa-exclamation-triangle"></i> 逾期：${user.overdue}</span>
+                    </div>
+                </div>
+                <div class="user-list-side">
+                    <div class="user-list-days">
+                        ${user.customLoanDays ? `${user.customLoanDays} 天` : '預設' }
+                    </div>
+                    <div class="user-list-date">最後借閱：${user.lastBorrowLabel}</div>
+                </div>
+            </div>
+        `).join('');
+
+        container.innerHTML = `
+            <div class="user-list-wrap">
+                <div class="user-list-summary">
+                    <strong>目前借閱者：${filtered.length} 人</strong>
+                    <span>借閱中 ${filtered.reduce((sum, user) => sum + user.activeBorrowed, 0)} 本</span>
+                </div>
+                ${rows}
+            </div>
+        `;
+    }
+
+    openUserLoanSettingByUsername(username) {
+        if (!this.requireAdmin('使用者借閱時間設定')) return;
+        this.normalizeUserLoanSettings();
+
+        const index = this.settings.userLoanSettings.findIndex(item => String(item.username || '').trim() === String(username || '').trim());
+        if (index >= 0) {
+            this.openUserLoanSetting(index);
+            return;
+        }
+
+        this.showAddUserLoanModal();
+        const usernameInput = document.getElementById('user-loan-username');
+        if (usernameInput) {
+            usernameInput.value = username;
         }
     }
 
